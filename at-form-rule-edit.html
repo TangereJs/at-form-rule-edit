@@ -6,61 +6,61 @@
 
 <polymer-element name="at-form-rule-edit">
 
-    <template>
-      <style>
-        #conditions, #actions {
-          margin: 20px 0;
-        }
+  <template>
+    <style>
+      #conditions, #actions {
+        margin: 20px 0;
+      }
 
         #conditions > .conditional > .remove, #actions > .conditional > .remove {
           display: none;
         }
 
-        #error_message_wrapper {
-          margin: 20px 0;
+      #error_message_wrapper {
+        margin: 20px 0;
+      }
+
+      .conditional {
+        padding-left: 60px;
+      }
+
+        .conditional .all-any-none-wrapper {
+          margin: 5px 20px 5px -60px;
+          display: -moz-inline-stack;
+          display: inline-block;
         }
 
-        .conditional {
-          padding-left: 60px;
-        }
+      .all-any-none {
+        margin-right: 10px;
+      }
 
-          .conditional .all-any-none-wrapper {
-            margin: 5px 20px 5px -60px;
-            display: -moz-inline-stack;
-            display: inline-block;
-          }
+      .all-any-none-wrapper, .conditional, .rule {
+        margin: 10px 0;
+      }
 
-        .all-any-none {
-          margin-right: 10px;
-        }
+      .add-rule, .add-condition, .remove {
+        margin: auto 5px;
+      }
 
-        .all-any-none-wrapper, .conditional, .rule {
-          margin: 10px 0;
-        }
+      .remove {
+        color: red;
+      }
 
-        .add-rule, .add-condition, .remove {
-          margin: auto 5px;
-        }
+      .rule input {
+        width: 250px;
+      }
 
-        .remove {
-          color: red;
-        }
+      .rule select {
+        margin-right: 10px;
+      }
 
-        .rule input {
-          width: 250px;
-        }
+      .action-buttons {
+        margin: 20px 0;
+      }
 
-        .rule select {
-          margin-right: 10px;
-        }
-
-        .action-buttons {
-          margin: 20px 0;
-        }
-
-        .action {
-          margin: 10px 0;
-        }
+      .action {
+        margin: 10px 0;
+      }
 
         .action .subfields, .action .subfields .field {
           display: inline;
@@ -82,169 +82,62 @@
           vertical-align: top;
           height: 50px;
         }
+    </style>
 
-        #demo-form {
-          position: absolute;
-          top: 0px;
-          right: 0px;
-          padding: 20px;
-          width: 300px;
-          background: #ddd;
+    <h3>When these conditions are met...</h3>
+    <div id="conditions"></div>
+
+    <h3>Do these actions...</h3>
+    <div id="actions"></div>
+
+    <content></content>
+  </template>
+
+  <script>
+    (function () {
+      Polymer('at-form-rule-edit', {
+        publish: {
+          conditions: [],
+          actions: [],
+          conditionsBuilder: {},
+          conditionsHtml: '',
+          actionsBuilder: {},
+          actionsHtml: ''
+        },
+        ready: function () {
+        },
+        conditionsChanged: function (oldValue, newValue) {
+          conditions = newValue;
+          initializeConditions(this);
+        },
+        actionsChanged: function (oldValue, newValue) {
+          actions = newValue;
+          initializeActions(this);
+        },
+
+        collectConditionsData: function () {
+          var conditionsData = this.conditionsBuilder.collectData(this.conditionsHtml);
+          return conditionsData;
+        },
+
+        collectActionsData: function () {
+          var actionsData = this.actionsBuilder.collectData(undefined, this.actionsHtml);
+          return actionsData;
         }
+      });
 
-          #demo-form div {
-            margin: 10px 0;
-          }
-      </style>
-      
-      <h3>When these conditions are met...</h3>
-      <div id="conditions"></div>
+      initializeConditions = function (pElement) {
+        pElement.conditionsBuilder = RuleEngineHelpers.conditionsBuilder(pElement.conditions);
+        pElement.conditionsHtml = pElement.conditionsBuilder.buildConditionsHtml();
+        pElement.$.conditions.appendChild(pElement.conditionsHtml);
+      }
 
-      <h3>Do these actions...</h3>
-      <div id="actions"></div>
+      initializeActions = function (pElement) {
+        pElement.actionsBuilder = RuleEngineHelpers.actionsBuilder(pElement.actions);
+        pElement.actionsHtml = pElement.actionsBuilder.buildActionsHtml();
+        pElement.$.actions.appendChild(pElement.actionsHtml);
+      }
+    })();
+  </script>
 
-      <form id="demo-form">
-        <h3>Try Changing These Values...</h3>
-        <div><label>Name</label><input type="text" id="nameField" /></div>
-        <div><label>Age</label><input type="text" id="ageField" size="2" /></div>
-        <div>
-          <label>Occupation</label>
-          <select id="occupationField"></select>
-        </div>
-        <div><button type="submit" id="submit">Run Conditions and Actions</button></div>
-      </form>
-      <content></content>
-    </template>
-
-    <script>
-      (function(){
-        var actions, nameField, ageField, occupationField, submit, conditionsObject, actionsObject;
-        var occupationOptions = [
-          {label: "", name: ""},
-          {label: "Software Engineer", name: "software-engineer"},
-          {label: "Biz Dev", name: "biz-dev"},
-          {label: "Marketing", name: "marketing"}
-        ];
-        
-        Polymer('at-form-rule-edit', {
-          ready: function(){
-            initializeConditions(this);
-            initializeActions(this);
-            initializeForm(this);
-          }
-        });
-        
-        function initializeConditions(pElement) {
-          var config = {
-            fields: [
-              {label: "Name", name: "nameField", operators: [
-                {label: "is present", name: "present", fieldType: "none"},
-                {label: "is blank", name: "blank", fieldType: "none"},
-                {label: "is equal to", name: "equalTo", fieldType: "text"},
-                {label: "is not equal to", name: "notEqualTo", fieldType: "text"},
-                {label: "includes", name: "includes", fieldType: "text"},
-                {label: "matches regex", name: "matchesRegex", fieldType: "text"}
-              ]},
-              {label: "Age", name: "ageField", operators: [
-                {label: "is present", name: "present", fieldType: "none"},
-                {label: "is blank", name: "blank", fieldType: "none"},
-                {label: "is equal to", name: "equalTo", fieldType: "text"},
-                {label: "is not equal to", name: "notEqualTo", fieldType: "text"},
-                {label: "is greater than", name: "greaterThan", fieldType: "text"},
-                {label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text"},
-                {label: "is less than", name: "lessThan", fieldType: "text"},
-                {label: "is less than or equal to", name: "lessThanEqual", fieldType: "text"},
-              ]},
-              {label: "Occupation", name: "occupationField", options: occupationOptions, operators: [
-                {label: "is present", name: "present", fieldType: "none"},
-                {label: "is blank", name: "blank", fieldType: "none"},
-                {label: "is equal to", name: "equalTo", fieldType: "select"},
-                {label: "is not equal to", name: "notEqualTo", fieldType: "select"},
-              ]}
-            ],
-            data: {"all": [
-              {name: "nameField", operator: "equalTo", value: "Godzilla"},
-              {name: "ageField", operator: "greaterThanEqual", value: "21"}
-            ]}
-          };
-          conditionsObject = RuleEngineHelpers.conditionsBuilder(config);
-          pElement.$.conditions.appendChild(conditionsObject.conditionsHtml);
-        }
-        
-        function initializeActions(pElement) {
-          var config = {
-            fields: [
-              {label: "Show Alert", name: "alert", fields: [
-                {label: "Message", name: "message", fieldType: "textarea"}
-              ]},
-              {label: "Update Field", name: "updateField", fields: [
-                {label: "Field", name: "fieldId", fieldType: "select", options: [
-                  {label: "Name to", name: "nameField", fields: [
-                    {label: "New Value", name: "newValue", fieldType: "text"}
-                  ]},
-                  {label: "Age to", name: "ageField", fields: [
-                    {label: "New Value", name: "newValue", fieldType: "text"}
-                  ]},
-                  {label: "Occupation to", name: "occupationField", fields: [
-                    {label: "New Value", name: "newValue", fieldType: "select", options: occupationOptions}
-                  ]}
-                ]},
-              ]}
-            ],
-            data: [
-              {name: "action-select", value: "alert", fields: [
-                {name: "message", value: "Hello world!"}
-              ]},
-              {name: "action-select", value: "updateField", fields: [
-                {name: "fieldId", value: "occupationField", fields: [
-                  {name: "newValue", value: "marketing"}
-                ]}
-              ]}
-            ]
-          };
-          actionsObject = RuleEngineHelpers.actionsBuilder(config);
-          pElement.$.actions.appendChild(actionsObject.actionsHtml);
-        }
-
-        function initializeForm(pElement) {
-          for(var i=0; i < occupationOptions.length; i++) {
-            var o = occupationOptions[i];
-            var optionChild = document.createElement("option");
-            optionChild.value = o.name;
-            optionChild.text = o.label;
-            pElement.$.occupationField.appendChild(optionChild);
-          }
-
-          pElement.$.submit.addEventListener('click', function(e) {
-            e.preventDefault();
-            var lConditions = RuleEngineHelpers.conditionsBuilder("data");
-            var lActions = actionsObject.actionsBuilder("data");
-            var engine = new RuleEngine({
-              conditions: lConditions,
-              actions: lActions
-            });
-            var conditionsAdapter = {
-              nameField: pElement.$.nameField.value, 
-              ageField: pElement.$.ageField.value,
-              occupationField: pElement.$.occupationField.value
-            };
-            var actionsAdapter = {
-              alert: function(data) { 
-                alert(data.find("message"));
-              },
-              updateField: function(data) {
-                console.log("data", data);
-                var fieldId = data.find("fieldId");
-                console.log("fieldId", fieldId);
-                var field = pElement.$[fieldId];
-                var val = data.find("fieldId", "newValue");
-                field.value = val;
-              }        
-            };
-            engine.run(conditionsAdapter, actionsAdapter);
-          });
-        }
-      })();
-    </script>
-    
 </polymer-element>

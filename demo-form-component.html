@@ -1,0 +1,341 @@
+<link rel="import" href="at-form-rule-edit.html">
+
+<polymer-element name="demo-form-component">
+  <template>
+    <style>
+      #demoForm {
+        position: relative;
+        top: 0px;
+        right: 0px;
+        padding: 20px;
+        width: 300px;
+        background: #ddd;
+      }
+
+        #demoForm div {
+          margin: 10px 0;
+        }
+
+        #peraForm {
+        position: relative;
+        top: 0px;
+        right: 0px;
+        padding: 20px;
+        width: 300px;
+        background: #ddd;
+      }
+
+        #peraForm div {
+          margin: 10px 0;
+        }
+    </style>
+    <at-form-rule-edit id="ruleEdit">
+      <form id="demoForm">
+        <h3>Try Changing These Values...</h3>
+        <div><label>Name</label><input type="text" id="nameField" /></div>
+        <div><label>Age</label><input type="text" id="ageField" size="2" /></div>
+        <div>
+          <label>Occupation</label>
+          <select id="occupationField"></select>
+        </div>
+        <div><button type="submit" id="submit">Run Conditions and Actions</button></div>
+      </form>
+    </at-form-rule-edit>
+
+    <at-form-rule-edit id="peraRules">
+      <form id="peraForm">
+        <h3>Try Changing These Values...</h3>
+        <div><label>Damage</label><input type="text" id="damageField" /></div>
+        <div><label>Health</label><input type="text" id="healthField" /></div>
+        <div>
+          <label>Enemy</label>
+          <select id="enemyField"></select>
+        </div>
+        <div><button type="submit" id="perasubmit">Run Conditions and Actions</button></div>
+      </form>
+    </at-form-rule-edit>
+  </template>
+
+  <script>
+    (function () {
+      Polymer('demo-form-component', {
+        ready: function () {
+          var occupationOptions = [
+            { label: "", name: "" },
+            { label: "Software Engineer", name: "software-engineer" },
+            { label: "Biz Dev", name: "biz-dev" },
+            { label: "Marketing", name: "marketing" }
+          ];
+
+          var conditionsConfig = {
+            fields: [
+              {
+                label: "Name", name: "nameField", operators: [
+                 { label: "is present", name: "present", fieldType: "none" },
+                 { label: "is blank", name: "blank", fieldType: "none" },
+                 { label: "is equal to", name: "equalTo", fieldType: "text" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
+                 { label: "includes", name: "includes", fieldType: "text" },
+                 { label: "matches regex", name: "matchesRegex", fieldType: "text" }
+                ]
+              },
+              {
+                label: "Age", name: "ageField", operators: [
+                 { label: "is present", name: "present", fieldType: "none" },
+                 { label: "is blank", name: "blank", fieldType: "none" },
+                 { label: "is equal to", name: "equalTo", fieldType: "text" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
+                 { label: "is greater than", name: "greaterThan", fieldType: "text" },
+                 { label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text" },
+                 { label: "is less than", name: "lessThan", fieldType: "text" },
+                 { label: "is less than or equal to", name: "lessThanEqual", fieldType: "text" },
+                ]
+              },
+              {
+                label: "Occupation", name: "occupationField", options: occupationOptions, operators: [
+                 { label: "is present", name: "present", fieldType: "none" },
+                 { label: "is blank", name: "blank", fieldType: "none" },
+                 { label: "is equal to", name: "equalTo", fieldType: "select" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "select" },
+                ]
+              }
+            ],
+            data: {
+              "all": [
+                { name: "nameField", operator: "equalTo", value: "Godzilla" },
+                { name: "ageField", operator: "greaterThanEqual", value: "21" }
+              ]
+            }
+          }; // end of conditions config
+
+          var actionsConfig = {
+            fields: [
+              {
+                label: "Show Alert", name: "alert", fields: [
+                 { label: "Message", name: "message", fieldType: "textarea" }
+                ]
+              },
+              {
+                label: "Update Field", name: "updateField", fields: [
+                 {
+                   label: "Field", name: "fieldId", fieldType: "select", options: [
+                    {
+                      label: "Name to", name: "nameField", fields: [
+                       { label: "New Value", name: "newValue", fieldType: "text" }
+                      ]
+                    },
+                    {
+                      label: "Age to", name: "ageField", fields: [
+                       { label: "New Value", name: "newValue", fieldType: "text" }
+                      ]
+                    },
+                    {
+                      label: "Occupation to", name: "occupationField", fields: [
+                       { label: "New Value", name: "newValue", fieldType: "select", options: occupationOptions }
+                      ]
+                    }
+                   ]
+                 },
+                ]
+              }
+            ],
+            data: [
+              {
+                name: "action-select", value: "alert", fields: [
+                 { name: "message", value: "Hello world!" }
+                ]
+              },
+              {
+                name: "action-select", value: "updateField", fields: [
+                 {
+                   name: "fieldId", value: "occupationField", fields: [
+                    { name: "newValue", value: "marketing" }
+                   ]
+                 }
+                ]
+              }
+            ]
+          }; // end of actions config
+
+          this.$.ruleEdit.conditions = conditionsConfig;
+          this.$.ruleEdit.actions = actionsConfig;
+
+          initializeForm(this);
+
+          function initializeForm(pElement) {
+            for (var i = 0; i < occupationOptions.length; i++) {
+              var o = occupationOptions[i];
+              var optionChild = document.createElement("option");
+              optionChild.value = o.name;
+              optionChild.text = o.label;
+              pElement.$.occupationField.appendChild(optionChild);
+            }
+
+            pElement.$.submit.addEventListener('click', function (e) {
+              e.preventDefault();
+              var lConditions = pElement.$.ruleEdit.collectConditionsData();
+              var lActions = pElement.$.ruleEdit.collectActionsData();
+              var engine = new RuleEngine({
+                conditions: lConditions,
+                actions: lActions
+              });
+              var conditionsAdapter = {
+                nameField: pElement.$.nameField.value,
+                ageField: pElement.$.ageField.value,
+                occupationField: pElement.$.occupationField.value
+              };
+              var actionsAdapter = {
+                alert: function (data) {
+                  alert(data.find("message"));
+                },
+                updateField: function (data) {
+                  console.log("data", data);
+                  var fieldId = data.find("fieldId");
+                  console.log("fieldId", fieldId);
+                  var field = pElement.$[fieldId];
+                  var val = data.find("fieldId", "newValue");
+                  field.value = val;
+                }
+              };
+              engine.run(conditionsAdapter, actionsAdapter);
+            });
+          }
+
+          var enemyOptions = [
+            { label: "", name: "" },
+            { label: "Enemy1", name: "enemy1" },
+            { label: "Enemy2", name: "enemy2" },
+            { label: "Enemy3", name: "enemy3" },
+          ];
+
+          // this is for the peraForm
+          var peraConditionsConfig = {
+            fields: [
+              {
+                label: "Damage", name: "damageField", operators: [
+                 { label: "is equal to", name: "equalTo", fieldType: "text" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
+                ]
+              },
+              {
+                label: "Health", name: "healthField", operators: [
+                 { label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text" },
+                 { label: "is less than or equal to", name: "lessThanEqual", fieldType: "text" },
+                ]
+              },
+              {
+                label: "Enemy", name: "enemyField", options: enemyOptions, operators: [
+                 { label: "is present", name: "present", fieldType: "none" },
+                 { label: "is blank", name: "blank", fieldType: "none" },
+                 { label: "is equal to", name: "equalTo", fieldType: "select" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "select" },
+                ]
+              }
+            ],
+            data: {
+              "all": [
+                { name: "damageField", operator: "equalTo", value: "50" },
+                { name: "healthField", operator: "lessThanEqual", value: "49" }
+              ]
+            }
+          }; // end of conditions config
+
+          var peraActionsConfig = {
+            fields: [
+              {
+                label: "Show Alert", name: "alert", fields: [
+                 { label: "Message", name: "message", fieldType: "textarea" }
+                ]
+              },
+              {
+                label: "Update Field", name: "updateField", fields: [
+                 {
+                   label: "Field", name: "fieldId", fieldType: "select", options: [
+                    {
+                      label: "Damage to", name: "damageField", fields: [
+                       { label: "New Value", name: "newValue", fieldType: "text" }
+                      ]
+                    },
+                    {
+                      label: "Health to", name: "healthField", fields: [
+                       { label: "New Value", name: "newValue", fieldType: "text" }
+                      ]
+                    },
+                    {
+                      label: "Enemy to", name: "enemyField", fields: [
+                       { label: "New Value", name: "newValue", fieldType: "select", options: enemyOptions }
+                      ]
+                    }
+                   ]
+                 },
+                ]
+              }
+            ],
+            data: [
+              {
+                name: "action-select", value: "alert", fields: [
+                 { name: "message", value: "You have been ... !" }
+                ]
+              },
+              {
+                name: "action-select", value: "updateField", fields: [
+                 {
+                   name: "fieldId", value: "enemyField", fields: [
+                    { name: "newValue", value: "enemy3" }
+                   ]
+                 }
+                ]
+              }
+            ]
+          }; // end of actions config
+
+          this.$.peraRules.conditions = peraConditionsConfig;
+          this.$.peraRules.actions = peraActionsConfig;
+
+          initializePeraForm(this);
+
+          function initializePeraForm(pElement) {
+            for (var i = 0; i < enemyOptions.length; i++) {
+              var o = enemyOptions[i];
+              var optionChild = document.createElement("option");
+              optionChild.value = o.name;
+              optionChild.text = o.label;
+              pElement.$.enemyField.appendChild(optionChild);
+            }
+
+            pElement.$.perasubmit.addEventListener('click', function (e) {
+              e.preventDefault();
+              var lConditions = pElement.$.peraRules.collectConditionsData();
+              var lActions = pElement.$.peraRules.collectActionsData();
+
+              var engine = new RuleEngine({
+                conditions: lConditions,
+                actions: lActions
+              });
+              var conditionsAdapter = {
+                damageField: pElement.$.damageField.value,
+                healthField: pElement.$.healthField.value,
+                enemyField: pElement.$.enemyField.value
+              };
+              var actionsAdapter = {
+                alert: function (data) {
+                  alert(data.find("message"));
+                },
+                updateField: function (data) {
+                  console.log("data", data);
+                  var fieldId = data.find("fieldId");
+                  console.log("fieldId", fieldId);
+                  var field = pElement.$[fieldId];
+                  var val = data.find("fieldId", "newValue");
+                  field.value = val;
+                }
+              };
+              engine.run(conditionsAdapter, actionsAdapter);
+            });
+          }
+        }
+      });
+    })();
+  </script>
+
+</polymer-element>
