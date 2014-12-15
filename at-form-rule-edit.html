@@ -107,7 +107,10 @@
         ready: function () {
         },
         conditionsChanged: function (oldValue, newValue) {
-          conditions = newValue;
+          this.conditions = newValue;
+          if (newValue.fields === undefined && newValue.data === undefined) {
+            this.conditions = JSONSchemaToConditionsConfig(newValue);
+          }
           initializeConditions(this);
         },
         actionsChanged: function (oldValue, newValue) {
@@ -126,16 +129,81 @@
         }
       });
 
-      initializeConditions = function (pElement) {
+      function initializeConditions(pElement) {
         pElement.conditionsBuilder = RuleEngineHelpers.conditionsBuilder(pElement.conditions);
         pElement.conditionsHtml = pElement.conditionsBuilder.buildConditionsHtml();
         pElement.$.conditions.appendChild(pElement.conditionsHtml);
       }
 
-      initializeActions = function (pElement) {
+      function initializeActions(pElement) {
         pElement.actionsBuilder = RuleEngineHelpers.actionsBuilder(pElement.actions);
         pElement.actionsHtml = pElement.actionsBuilder.buildActionsHtml();
         pElement.$.actions.appendChild(pElement.actionsHtml);
+      }
+
+      function JSONSchemaToConditionsConfig(schema) {
+        var result = {
+          fields: [],
+          data: { "all": [] }
+        };
+        for (entry in schema) {
+          var entryType = schema[entry].type;
+          var defaultValue = schema[entry].default !== undefined ? schema[entry].default : '';
+
+          var newField = { label: entry, name: entry + 'Field', operators: [] };
+          if (schema[entry].options !== undefined) {
+            newField.options = schema[entry].options;
+          }
+          result.fields.push(newField);
+          switch (entryType) {
+            case "string":
+              newField.operators = [
+                { label: "is present", name: "present", fieldType: "none" },
+                { label: "is blank", name: "blank", fieldType: "none" },
+                { label: "is equal to", name: "equalTo", fieldType: "text" },
+                { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
+                { label: "includes", name: "includes", fieldType: "text" },
+                { label: "matches regex", name: "matchesRegex", fieldType: "text" }
+              ];
+              break;
+            case "number":
+              newField.operators = [
+                 { label: "is present", name: "present", fieldType: "none" },
+                 { label: "is blank", name: "blank", fieldType: "none" },
+                 { label: "is equal to", name: "equalTo", fieldType: "text" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
+                 { label: "is greater than", name: "greaterThan", fieldType: "text" },
+                 { label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text" },
+                 { label: "is less than", name: "lessThan", fieldType: "text" },
+                 { label: "is less than or equal to", name: "lessThanEqual", fieldType: "text" }
+              ];
+              break;
+            case "boolean":
+              newField.operators = [
+                 { label: "is equal to", name: "equalTo", fieldType: "select" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "select" }
+              ];
+              break;
+            case "enum":
+              newField.operators = [
+                 { label: "is present", name: "present", fieldType: "none" },
+                 { label: "is blank", name: "blank", fieldType: "none" },
+                 { label: "is equal to", name: "equalTo", fieldType: "select" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "select" }
+              ];
+              break;
+          }
+          var defaultOperator = newField.operators[0].name;
+          if (schema[entry].defaultOperator !== undefined) {
+            defaultOperator = schema[entry].defaultOperator;
+          }
+          result.data.all.push({
+            name: newField.name,
+            operator: defaultOperator,
+            value: defaultValue
+          });
+        }
+        return result;
       }
     })();
   </script>
