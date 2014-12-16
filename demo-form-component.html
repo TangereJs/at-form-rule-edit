@@ -73,9 +73,11 @@
           //  "booleanTest": { "type": "boolean", "default": "false", "options": [{ label: "true", name: "true" }, { label: "false", name: "false" }], "defaultOperator": "equalTo" },
           //  "occupation": { "type": "enum", "options": occupationOptions }
           //});
+          //"default": "Godzilla", "defaultOperator": "equalTo" 
+          //"default": "21", "defaultOperator": "greaterThanEqual" 
           var conditionsConfig = {
-            "name": { "type": "string", "default": "Godzilla", "defaultOperator": "equalTo" },
-            "age": { "type": "number", "default": "21", "defaultOperator": "greaterThanEqual" },
+            "name": { "type": "string" },
+            "age": { "type": "number" },
             "booleanTest": { "type": "boolean", "default": "false", "options": [{ label: "true", name: "true" }, { label: "false", name: "false" }], "defaultOperator": "equalTo" },
             "occupation": { "type": "enum", "options": occupationOptions }
           };

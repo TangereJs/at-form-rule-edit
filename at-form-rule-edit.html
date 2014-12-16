@@ -104,12 +104,14 @@
           actionsBuilder: {},
           actionsHtml: ''
         },
+        conditionsArray: [], // this is used to avoid double conditions object
         ready: function () {
         },
         conditionsChanged: function (oldValue, newValue) {
-          this.conditions = newValue;
           if (newValue.fields === undefined && newValue.data === undefined) {
-            this.conditions = JSONSchemaToConditionsConfig(newValue);
+            this.conditionsArray = JSONSchemaToConditionsConfig(newValue);
+          } else {
+            this.conditionsArray = newValue;
           }
           initializeConditions(this);
         },
@@ -130,7 +132,7 @@
       });
 
       function initializeConditions(pElement) {
-        pElement.conditionsBuilder = RuleEngineHelpers.conditionsBuilder(pElement.conditions);
+        pElement.conditionsBuilder = RuleEngineHelpers.conditionsBuilder(pElement.conditionsArray);
         pElement.conditionsHtml = pElement.conditionsBuilder.buildConditionsHtml();
         pElement.$.conditions.appendChild(pElement.conditionsHtml);
       }
