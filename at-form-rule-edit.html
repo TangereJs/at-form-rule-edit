@@ -165,7 +165,11 @@
                 { label: "is equal to", name: "equalTo", fieldType: "text" },
                 { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
                 { label: "includes", name: "includes", fieldType: "text" },
-                { label: "matches regex", name: "matchesRegex", fieldType: "text" }
+                { label: "matches regex", name: "matchesRegex", fieldType: "text" },
+                { label: "is less than", name: "lessThan", fieldType: "text" },
+                { label: "is less than or equal to", name: "lessThanEqual", fieldType: "text" },
+                { label: "is greater than", name: "greaterThan", fieldType: "text" },
+                { label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text" }
               ];
               break;
             case "number":
@@ -182,6 +186,7 @@
               break;
             case "boolean":
               newField.operators = [
+                 { label: "is blank", name: "blank", fieldType: "none" },
                  { label: "is equal to", name: "equalTo", fieldType: "select" },
                  { label: "is not equal to", name: "notEqualTo", fieldType: "select" }
               ];
