@@ -105,6 +105,7 @@
           actionsHtml: ''
         },
         conditionsArray: [], // this is used to avoid double conditions object
+        actionsArray: [], // this is used to avoid double conditions object
         ready: function () {
         },
         conditionsChanged: function (oldValue, newValue) {
@@ -116,7 +117,11 @@
           initializeConditions(this);
         },
         actionsChanged: function (oldValue, newValue) {
-          actions = newValue;
+          if (newValue.fields === undefined && newValue.data === undefined) {
+            this.actionsArray = JSONSchemaToActionsConfig(newValue);
+          } else {
+            this.actionsArray = newValue;
+          }
           initializeActions(this);
         },
 
@@ -138,9 +143,13 @@
       }
 
       function initializeActions(pElement) {
-        pElement.actionsBuilder = RuleEngineHelpers.actionsBuilder(pElement.actions);
+        pElement.actionsBuilder = RuleEngineHelpers.actionsBuilder(pElement.actionsArray);
         pElement.actionsHtml = pElement.actionsBuilder.buildActionsHtml();
         pElement.$.actions.appendChild(pElement.actionsHtml);
+      }
+
+      function capitalize(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
       }
 
       function JSONSchemaToConditionsConfig(schema) {
@@ -152,7 +161,7 @@
           var entryType = schema[entry].type;
           var defaultValue = schema[entry].default !== undefined ? schema[entry].default : '';
 
-          var newField = { label: entry, name: entry + 'Field', operators: [] };
+          var newField = { label: capitalize(entry), name: entry + 'Field', operators: [] };
           if (schema[entry].options !== undefined) {
             newField.options = schema[entry].options;
           }
@@ -212,6 +221,108 @@
         }
         return result;
       }
+
+      function JSONSchemaToActionsConfig(conditionsConfig) {
+        var stateOptions = [
+            { label: "Optional", name: "optional" },
+            { label: "Required", name: "required" },
+            { label: "Hidden", name: "hidden" },
+            { label: "Disabled", name: "disabled" }
+        ];
+        var result = {
+          fields: [],
+          data: []
+        };
+
+        var showAlertField = {
+          label: "Show Alert",
+          name: "alert",
+          fields: [
+            { label: "Message", name: "message", fieldType: "textarea" }
+          ]
+        };
+
+        var updateField = {
+          label: "Update Field",
+          name: "updateField",
+          fields: [{ label: "Field", name: "fieldId", fieldType: "select", options: [] }]
+        };
+
+        var setFieldStateField = {
+          label: "Set Field State",
+          name: "setFieldState",
+          fields: [{ label: "Field", name: "fieldId", fieldType: "select", options: [] }]
+        };
+
+        result.fields.push(showAlertField);
+        result.fields.push(updateField);
+        result.fields.push(setFieldStateField);
+
+        result.data.push({
+          name: "action-select", value: "alert", fields: [{ name: "message", value: "Hello world!" }]
+        });
+
+        for (condition in conditionsConfig) {
+          var condConf = conditionsConfig[condition];
+          var updateFieldOption = {};
+          var setFieldStateOption = {};
+
+          switch (condConf.type) {
+            case "string":
+            case "number":
+              updateFieldOption = {
+                label: capitalize(condition + " to"), name: condition + "Field", fields: [
+                 { label: "New Value", name: "newValue", fieldType: "text" }
+                ]
+              };
+              setFieldStateOption = {
+                label: capitalize(condition), name: condition + "Field", fields: [
+                 { label: "New state", name: "newState", fieldType: "select", options: stateOptions }
+                ]
+              };
+              result.data.push({
+                name: "action-select", value: "updateField", fields: [{ name: "fieldId", value: condition + "Field", fields: [{ name: "newValue", value: '' }] }]
+              });
+              break;
+            case "bool":
+            case "boolean":
+              updateFieldOption = {
+                label: capitalize(condition + " to"), name: condition + "Field", fields: [
+                 { label: "New Value", name: "newValue", fieldType: "select", options: condConf.options }
+                ]
+              };
+              setFieldStateOption = {
+                label: capitalize(condition), name: condition + "Field", fields: [
+                 { label: "New state", name: "newState", fieldType: "select", options: stateOptions }
+                ]
+              };
+              result.data.push({
+                name: "action-select", value: "updateField", fields: [{ name: "fieldId", value: condition + "Field", fields: [{ name: "newValue", value: condConf.options[0].name }] }]
+              });
+              break;
+            case "enum":
+              updateFieldOption = {
+                label: capitalize(condition + " to"), name: condition + "Field", fields: [
+                 { label: "New Value", name: "newValue", fieldType: "select", options: condConf.options }
+                ]
+              };
+              setFieldStateOption = {
+                label: capitalize(condition), name: condition + "Field", fields: [
+                 { label: "New state", name: "newState", fieldType: "select", options: stateOptions }
+                ]
+              };
+              result.data.push({
+                name: "action-select", value: "updateField", fields: [{ name: "fieldId", value: condition + "Field", fields: [{ name: "newValue", value: condConf.options[1].name }] }]
+              });
+              break;
+          }
+
+          updateField.fields[0].options.push(updateFieldOption);
+          setFieldStateField.fields[0].options.push(setFieldStateOption);
+        }
+        return result;
+      }
+      
     })();
   </script>
 

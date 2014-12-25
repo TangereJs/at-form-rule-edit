@@ -58,6 +58,8 @@
 
   <script>
     (function () {
+
+
       Polymer('demo-form-component', {
         ready: function () {
           var occupationOptions = [
@@ -66,6 +68,12 @@
             { label: "Biz Dev", name: "biz-dev" },
             { label: "Marketing", name: "marketing" }
           ];
+          var stateOptions = [
+            { label: "Optional", name: "optional" },
+            { label: "Required", name: "required" },
+            { label: "Hidden", name: "hidden" },
+            { label: "Disabled", name: "disabled" }
+          ];
 
           //var conditionsConfig = JSONSchemaToConditionsConfig({
           //  "name": { "type": "string", "default": "Godzilla", "defaultOperator": "equalTo" },
@@ -73,8 +81,8 @@
           //  "booleanTest": { "type": "boolean", "default": "false", "options": [{ label: "true", name: "true" }, { label: "false", name: "false" }], "defaultOperator": "equalTo" },
           //  "occupation": { "type": "enum", "options": occupationOptions }
           //});
-          //"default": "Godzilla", "defaultOperator": "equalTo" 
-          //"default": "21", "defaultOperator": "greaterThanEqual" 
+          //"default": "Godzilla", "defaultOperator": "equalTo"
+          //"default": "21", "defaultOperator": "greaterThanEqual"
           var conditionsConfig = {
             "name": { "type": "string" },
             "age": { "type": "number" },
@@ -83,48 +91,50 @@
           };
           //debugger;
 
-          var conditionsConfigTest = {
-            fields: [
-              {
-                label: "Name", name: "nameField", operators: [
-                 { label: "is present", name: "present", fieldType: "none" },
-                 { label: "is blank", name: "blank", fieldType: "none" },
-                 { label: "is equal to", name: "equalTo", fieldType: "text" },
-                 { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
-                 { label: "includes", name: "includes", fieldType: "text" },
-                 { label: "matches regex", name: "matchesRegex", fieldType: "text" }
-                ]
-              },
-              {
-                label: "Age", name: "ageField", operators: [
-                 { label: "is present", name: "present", fieldType: "none" },
-                 { label: "is blank", name: "blank", fieldType: "none" },
-                 { label: "is equal to", name: "equalTo", fieldType: "text" },
-                 { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
-                 { label: "is greater than", name: "greaterThan", fieldType: "text" },
-                 { label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text" },
-                 { label: "is less than", name: "lessThan", fieldType: "text" },
-                 { label: "is less than or equal to", name: "lessThanEqual", fieldType: "text" },
-                ]
-              },
-              {
-                label: "Occupation", name: "occupationField", options: occupationOptions, operators: [
-                 { label: "is present", name: "present", fieldType: "none" },
-                 { label: "is blank", name: "blank", fieldType: "none" },
-                 { label: "is equal to", name: "equalTo", fieldType: "select" },
-                 { label: "is not equal to", name: "notEqualTo", fieldType: "select" },
-                ]
-              }
-            ],
-            data: {
-              "all": [
-                { name: "nameField", operator: "equalTo", value: "Godzilla" },
-                { name: "ageField", operator: "greaterThanEqual", value: "21" }
-              ]
-            }
-          }; // end of conditions config
+          //var conditionsConfigTest = {
+          //  fields: [
+          //    {
+          //      label: "Name", name: "nameField", operators: [
+          //       { label: "is present", name: "present", fieldType: "none" },
+          //       { label: "is blank", name: "blank", fieldType: "none" },
+          //       { label: "is equal to", name: "equalTo", fieldType: "text" },
+          //       { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
+          //       { label: "includes", name: "includes", fieldType: "text" },
+          //       { label: "matches regex", name: "matchesRegex", fieldType: "text" }
+          //      ]
+          //    },
+          //    {
+          //      label: "Age", name: "ageField", operators: [
+          //       { label: "is present", name: "present", fieldType: "none" },
+          //       { label: "is blank", name: "blank", fieldType: "none" },
+          //       { label: "is equal to", name: "equalTo", fieldType: "text" },
+          //       { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
+          //       { label: "is greater than", name: "greaterThan", fieldType: "text" },
+          //       { label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text" },
+          //       { label: "is less than", name: "lessThan", fieldType: "text" },
+          //       { label: "is less than or equal to", name: "lessThanEqual", fieldType: "text" },
+          //      ]
+          //    },
+          //    {
+          //      label: "Occupation", name: "occupationField", options: occupationOptions, operators: [
+          //       { label: "is present", name: "present", fieldType: "none" },
+          //       { label: "is blank", name: "blank", fieldType: "none" },
+          //       { label: "is equal to", name: "equalTo", fieldType: "select" },
+          //       { label: "is not equal to", name: "notEqualTo", fieldType: "select" },
+          //      ]
+          //    }
+          //  ],
+          //  data: {
+          //    "all": [
+          //      { name: "nameField", operator: "equalTo", value: "Godzilla" },
+          //      { name: "ageField", operator: "greaterThanEqual", value: "21" }
+          //    ]
+          //  }
+          //}; // end of conditions config
 
-          var actionsConfig = {
+          //var actionsConfig = generateActionsFromSchema(conditionsConfig);
+
+          var actionsConfigTest = {
             fields: [
               {
                 label: "Show Alert", name: "alert", fields: [
@@ -153,6 +163,29 @@
                    ]
                  },
                 ]
+              },
+              {
+                label: "Set Field State", name: "setFieldState", fields: [
+                 {
+                   label: "Field", name: "fieldId", fieldType: "select", options: [
+                    {
+                      label: "Name", name: "nameField", fields: [
+                       { label: "New state", name: "newState", fieldType: "select", options: stateOptions }
+                      ]
+                    },
+                    {
+                      label: "Age", name: "ageField", fields: [
+                       { label: "New Value", name: "newState", fieldType: "select", options: stateOptions }
+                      ]
+                    },
+                    {
+                      label: "Occupation", name: "occupationField", fields: [
+                       { label: "New Value", name: "newState", fieldType: "select", options: stateOptions }
+                      ]
+                    }
+                   ]
+                 },
+                ]
               }
             ],
             data: [
@@ -169,6 +202,15 @@
                    ]
                  }
                 ]
+              },
+              {
+                name: "action-select", value: "setFieldState", fields: [
+                   {
+                     name: "fieldId", value: "ageField", fields: [
+                      { name: "newState", value: "required" }
+                     ]
+                   }
+                ]
               }
             ]
           }; // end of actions config
@@ -178,7 +220,8 @@
           // use window.test.ruleEdit.collectConditionsData() and window.test.ruleEdit.collectActionsData() to get changed values
 
           this.$.ruleEdit.conditions = conditionsConfig;
-          this.$.ruleEdit.actions = actionsConfig;
+          //this.$.ruleEdit.actions = actionsConfig;
+          this.$.ruleEdit.actions = conditionsConfig;
 
           initializeForm(this);
 
@@ -355,8 +398,6 @@
           }
         }
       });
-      
     })();
   </script>
-
 </polymer-element>
