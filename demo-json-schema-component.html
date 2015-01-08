@@ -1,0 +1,120 @@
+<link rel="import" href="at-form-rule-edit.html">
+
+<polymer-element name="demo-json-schema-component">
+  <template>
+    <style>
+      #demoForm {
+        position: relative;
+        top: 0px;
+        right: 0px;
+        padding: 20px;
+        width: 300px;
+        background: #ddd;
+      }
+
+        #demoForm div {
+          margin: 10px 0;
+        }
+
+      #peraForm {
+        position: relative;
+        top: 0px;
+        right: 0px;
+        padding: 20px;
+        width: 300px;
+        background: #ddd;
+      }
+
+        #peraForm div {
+          margin: 10px 0;
+        }
+    </style>
+    <h3>Demo json schema</h3>
+    <at-form-rule-edit id="ruleEdit">
+      <form id="demoForm">
+        <h3>Try Changing These Values...</h3>
+        <div><label>Name</label><input type="text" id="nameField" /></div>
+        <div><label>Age</label><input type="text" id="ageField" size="2" /></div>
+        <div>
+          <label>Occupation</label>
+          <select id="occupationField"></select>
+        </div>
+        <div><button type="submit" id="submit">Run Conditions and Actions</button></div>
+      </form>
+    </at-form-rule-edit>
+  </template>
+  <script>
+    (function () {
+      Polymer('demo-json-schema-component', {
+        ready: function () {
+          var occupationOptions = [
+            { label: "", name: "" },
+            { label: "Software Engineer", name: "software-engineer" },
+            { label: "Biz Dev", name: "biz-dev" },
+            { label: "Marketing", name: "marketing" }
+          ];
+          var stateOptions = [
+            { label: "Optional", name: "optional" },
+            { label: "Required", name: "required" },
+            { label: "Hidden", name: "hidden" },
+            { label: "Disabled", name: "disabled" }
+          ];
+
+          var conditionsConfig = {
+            "name": { "type": "string" },
+            "age": { "type": "number" },
+            "booleanTest": { "type": "boolean", "default": "false", "options": [{ label: "true", name: "true" }, { label: "false", name: "false" }], "defaultOperator": "equalTo" },
+            "occupation": { "type": "enum", "options": occupationOptions }
+          };
+
+          window.test = this.$;
+          // use window.test.ruleEdit.collectConditionsData() and window.test.ruleEdit.collectActionsData() to get changed values
+
+          this.$.ruleEdit.conditions = conditionsConfig;
+          this.$.ruleEdit.actions = conditionsConfig;
+
+          initializeForm(this);
+
+          function initializeForm(pElement) {
+            for (var i = 0; i < occupationOptions.length; i++) {
+              var o = occupationOptions[i];
+              var optionChild = document.createElement("option");
+              optionChild.value = o.name;
+              optionChild.text = o.label;
+              pElement.$.occupationField.appendChild(optionChild);
+            }
+
+            pElement.$.submit.addEventListener('click', function (e) {
+              e.preventDefault();
+              var lConditions = pElement.$.ruleEdit.collectConditionsData();
+              var lActions = pElement.$.ruleEdit.collectActionsData();
+              var engine = new RuleEngine({
+                conditions: lConditions,
+                actions: lActions
+              });
+              var conditionsAdapter = {
+                nameField: pElement.$.nameField.value,
+                ageField: pElement.$.ageField.value,
+                occupationField: pElement.$.occupationField.value
+              };
+              var actionsAdapter = {
+                alert: function (data) {
+                  alert(data.find("message"));
+                },
+                updateField: function (data) {
+                  console.log("data", data);
+                  var fieldId = data.find("fieldId");
+                  console.log("fieldId", fieldId);
+                  var field = pElement.$[fieldId];
+                  var val = data.find("fieldId", "newValue");
+                  field.value = val;
+                }
+              };
+              engine.run(conditionsAdapter, actionsAdapter);
+            });
+          }
+        }
+      });
+    })();
+  </script>
+</polymer-element>
