@@ -1,18 +1,120 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-    <title>Conditions Demo</title>
-    
-    <script src="../webcomponentsjs/webcomponents.js"></script>
-    <link rel="import" href="../polymer/polymer.html" />
-    <link rel="import" href="demo-json-schema-component.html">
-  </head>
-  <body unresolved>
-    <h1>Conditions and Actions Demo</h1>
-    <h2>json schema demo</h2>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>Conditions Demo</title>
 
-    <demo-json-schema-component></demo-json-schema-component>
-  </body>
+  <script src="../webcomponentsjs/webcomponents.js"></script>
+  <link rel="import" href="../polymer/polymer.html" />
+  <link rel="import" href="at-form-rule-edit.html">
+
+  <style>
+    #demoForm {
+      position: relative;
+      top: 0px;
+      right: 0px;
+      padding: 20px;
+      width: 300px;
+      background: #ddd;
+    }
+
+      #demoForm div {
+        margin: 10px 0;
+      }
+  </style>
+</head>
+<body unresolved>
+  <h2>Conditions and Actions Demo - json schema demo</h2>
+  <at-form-rule-edit id="ruleEdit">
+    <form id="demoForm">
+      <h3>Try Changing These Values...</h3>
+      <div><label>Name</label><input type="text" id="nameField" /></div>
+      <div><label>Age</label><input type="text" id="ageField" size="2" /></div>
+      <div><input type="checkbox" id="booleanTestField" /><label>Boolean Test</label></div>
+      <div>
+        <label>Occupation</label>
+        <select id="occupationField"></select>
+      </div>
+      <div><button type="submit" id="submit">Run Conditions and Actions</button></div>
+    </form>
+  </at-form-rule-edit>
+  
+  <script>
+    document.addEventListener('polymer-ready',function() {
+        var occupationOptions = [
+          { label: "", name: "" },
+          { label: "Software Engineer", name: "software-engineer" },
+          { label: "Biz Dev", name: "biz-dev" },
+          { label: "Marketing", name: "marketing" }
+        ];
+        var stateOptions = [
+          { label: "Optional", name: "optional" },
+          { label: "Required", name: "required" },
+          { label: "Hidden", name: "hidden" },
+          { label: "Disabled", name: "disabled" }
+        ];
+
+        var conditionsConfig = {
+          "name": { "type": "string" },
+          "age": { "type": "number" },
+          "booleanTest": { "type": "boolean", "default": "false", "options": [{ label: "true", name: "true" }, { label: "false", name: "false" }], "defaultOperator": "equalTo" },
+          "occupation": { "type": "enum", "options": occupationOptions }
+        };
+
+        window.test = this.$;
+        // use window.test.ruleEdit.collectConditionsData() and window.test.ruleEdit.collectActionsData() to get changed values
+
+        var ruleEdit = document.getElementById('ruleEdit');
+        ruleEdit.conditions = conditionsConfig;
+        ruleEdit.actions = conditionsConfig;
+
+        initializeForm(this);
+
+        function initializeForm(pElement) {
+          var occupationField = document.getElementById('occupationField');
+          var ruleEdit = document.getElementById('ruleEdit');
+          var nameField = document.getElementById('nameField');
+          var ageField = document.getElementById('ageField');
+
+          for (var i = 0; i < occupationOptions.length; i++) {
+            var o = occupationOptions[i];
+            var optionChild = document.createElement("option");
+            optionChild.value = o.name;
+            optionChild.text = o.label;
+            occupationField.appendChild(optionChild);
+          }
+
+          var submit = document.getElementById('submit');
+          submit.addEventListener('click', function (e) {
+            e.preventDefault();
+            var lConditions = ruleEdit.collectConditionsData();
+            var lActions = ruleEdit.collectActionsData();
+            var engine = new RuleEngine({
+              conditions: lConditions,
+              actions: lActions
+            });
+            var conditionsAdapter = {
+              nameField: nameField.value,
+              ageField: ageField.value,
+              occupationField: occupationField.value
+            };
+            var actionsAdapter = {
+              alert: function (data) {
+                alert(data.find("message"));
+              },
+              updateField: function (data) {
+                console.log("data", data);
+                var fieldId = data.find("fieldId");
+                console.log("fieldId", fieldId);
+                var field = document.getElementById(fieldId);
+                var val = data.find("fieldId", "newValue");
+                field.value = val;
+              }
+            };
+            engine.run(conditionsAdapter, actionsAdapter);
+          });
+        }
+    });
+  </script>
+</body>
 </html>
-
