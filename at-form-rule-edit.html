@@ -102,7 +102,9 @@
           conditionsBuilder: {},
           conditionsHtml: '',
           actionsBuilder: {},
-          actionsHtml: ''
+          actionsHtml: '',
+          defaultConditions: true,
+          defaultActions: true
         },
         conditionsArray: [], // this is used to avoid double conditions object
         actionsArray: [], // this is used to avoid double conditions object
@@ -110,7 +112,7 @@
         },
         conditionsChanged: function (oldValue, newValue) {
           if (newValue.fields === undefined && newValue.data === undefined) {
-            this.conditionsArray = JSONSchemaToConditionsConfig(newValue);
+            this.conditionsArray = JSONSchemaToConditionsConfig(newValue, this.defaultConditions);
           } else {
             this.conditionsArray = newValue;
           }
@@ -118,7 +120,7 @@
         },
         actionsChanged: function (oldValue, newValue) {
           if (newValue.fields === undefined && newValue.data === undefined) {
-            this.actionsArray = JSONSchemaToActionsConfig(newValue);
+            this.actionsArray = JSONSchemaToActionsConfig(newValue, this.defaultActions);
           } else {
             this.actionsArray = newValue;
           }
@@ -152,7 +154,7 @@
         return string.charAt(0).toUpperCase() + string.slice(1);
       }
 
-      function JSONSchemaToConditionsConfig(schema) {
+      function JSONSchemaToConditionsConfig(schema, defaultConditions) {
         var result = {
           fields: [],
           data: { "all": [] }
@@ -213,16 +215,18 @@
           if (schema[entry].defaultOperator !== undefined) {
             defaultOperator = schema[entry].defaultOperator;
           }
-          result.data.all.push({
-            name: newField.name,
-            operator: defaultOperator,
-            value: defaultValue
-          });
+          if (defaultConditions) {
+            result.data.all.push({
+              name: newField.name,
+              operator: defaultOperator,
+              value: defaultValue
+            });
+          }
         }
         return result;
       }
 
-      function JSONSchemaToActionsConfig(conditionsConfig) {
+      function JSONSchemaToActionsConfig(conditionsConfig, defaultActions) {
         var stateOptions = [
             { label: "Optional", name: "optional" },
             { label: "Required", name: "required" },
@@ -257,10 +261,11 @@
         result.fields.push(showAlertField);
         result.fields.push(updateField);
         result.fields.push(setFieldStateField);
-
-        result.data.push({
-          name: "action-select", value: "alert", fields: [{ name: "message", value: "Hello world!" }]
-        });
+        if (defaultActions) {
+          result.data.push({
+            name: "action-select", value: "alert", fields: [{ name: "message", value: "Hello world!" }]
+          });
+        }
 
         for (condition in conditionsConfig) {
           var condConf = conditionsConfig[condition];
@@ -280,9 +285,11 @@
                  { label: "New state", name: "newState", fieldType: "select", options: stateOptions }
                 ]
               };
-              result.data.push({
-                name: "action-select", value: "updateField", fields: [{ name: "fieldId", value: condition + "Field", fields: [{ name: "newValue", value: '' }] }]
-              });
+              if (defaultActions) {
+                result.data.push({
+                  name: "action-select", value: "updateField", fields: [{ name: "fieldId", value: condition + "Field", fields: [{ name: "newValue", value: '' }] }]
+                });
+              }
               break;
             case "bool":
             case "boolean":
@@ -296,9 +303,11 @@
                  { label: "New state", name: "newState", fieldType: "select", options: stateOptions }
                 ]
               };
-              result.data.push({
-                name: "action-select", value: "updateField", fields: [{ name: "fieldId", value: condition + "Field", fields: [{ name: "newValue", value: condConf.options[0].name }] }]
-              });
+              if (defaultActions) {
+                result.data.push({
+                  name: "action-select", value: "updateField", fields: [{ name: "fieldId", value: condition + "Field", fields: [{ name: "newValue", value: condConf.options[0].name }] }]
+                });
+              }
               break;
             case "enum":
               updateFieldOption = {
@@ -311,9 +320,11 @@
                  { label: "New state", name: "newState", fieldType: "select", options: stateOptions }
                 ]
               };
-              result.data.push({
-                name: "action-select", value: "updateField", fields: [{ name: "fieldId", value: condition + "Field", fields: [{ name: "newValue", value: condConf.options[1].name }] }]
-              });
+              if (defaultActions) {
+                result.data.push({
+                  name: "action-select", value: "updateField", fields: [{ name: "fieldId", value: condition + "Field", fields: [{ name: "newValue", value: condConf.options[1].name }] }]
+                });
+              }
               break;
           }
 
@@ -322,7 +333,7 @@
         }
         return result;
       }
-      
+
     })();
   </script>
 
