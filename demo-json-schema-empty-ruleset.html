@@ -55,19 +55,33 @@
       ];
 
       var conditionsConfig = {
-        "name": { "type": "string" },
-        "age": { "type": "number" },
-        "booleanTest": { "type": "boolean", "default": "false", "options": [{ label: "true", name: "true" }, { label: "false", name: "false" }], "defaultOperator": "equalTo" },
-        "occupation": { "type": "enum", "options": occupationOptions }
+        "properties":
+        {
+          "id": { "description": "The unique identifier for a product", "type": "number" },
+          "name": { "type": "string", "required": "true", "xinputmode": "required" },
+          "city": { "type": "string", "default": "Default city name" },
+          "active": { "type": "boolean" },
+          "activePera": { "type": "boolean", "description": "This is description for pera" },
+          "dropdownDemo": { "title": "Name", "type": "string", "xtype": "enum", "xvaluelist": "XML,JSON", "default": "XML" },
+          "card": { "title": "Card", "type": "string", "xtype": "lookup", "xurl": "http://localhost:2014/Activity/adenin.GateKeeper.Content/card/" }
+        },
+        "required": ["id", "city"]
       };
+
+      //var conditionsConfig = {
+      //  "name": { "type": "string" },
+      //  "age": { "type": "number" },
+      //  "booleanTest": { "type": "boolean", "default": "false", "options": [{ label: "true", name: "true" }, { label: "false", name: "false" }], "defaultOperator": "equalTo" },
+      //  "occupation": { "type": "enum", "options": occupationOptions }
+      //};
 
       window.test = this.$;
 
       // use window.test.ruleEdit.collectConditionsData() and window.test.ruleEdit.collectActionsData() to get changed values
       var ruleEdit = document.getElementById('ruleEdit');
-      ruleEdit.conditions = conditionsConfig;
+      ruleEdit.schema = conditionsConfig;
       //this.$.ruleEdit.actions = actionsConfig;
-      ruleEdit.actions = conditionsConfig;
+      //ruleEdit.actions = conditionsConfig;
       //ruleEdit.actions = { fields: [], data: [] };
 
       initializeForm(this);

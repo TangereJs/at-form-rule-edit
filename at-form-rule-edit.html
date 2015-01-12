@@ -97,18 +97,24 @@
     (function () {
       Polymer('at-form-rule-edit', {
         publish: {
-          conditions: [],
-          actions: [],
-          conditionsBuilder: {},
-          conditionsHtml: '',
-          actionsBuilder: {},
-          actionsHtml: '',
+          schema: {},
           defaultConditions: true,
-          defaultActions: true
+          defaultActions: true,
         },
+        conditions: [],
+        actions: [],
         conditionsArray: [], // this is used to avoid double conditions object
         actionsArray: [], // this is used to avoid double conditions object
+        conditionsBuilder: {},
+        conditionsHtml: '',
+        actionsBuilder: {},
+        actionsHtml: '',
+
         ready: function () {
+        },
+        schemaChanged: function (oldValue, newValue) {
+          this.conditions = newValue;
+          this.actions = newValue;
         },
         conditionsChanged: function (oldValue, newValue) {
           if (newValue.fields === undefined && newValue.data === undefined) {
@@ -155,6 +161,82 @@
       }
 
       function JSONSchemaToConditionsConfig(schema, defaultConditions) {
+        var result = {
+          fields: [],
+          data: { "all": [] }
+        };
+
+        var properties = schema.properties;
+
+        for (entry in properties) {
+          var entryType = properties[entry].type;
+          var defaultValue = properties[entry].default !== undefined ? properties[entry].default : '';
+
+          var newField = { label: capitalize(entry), name: entry + 'Field', operators: [] };
+          if (properties[entry].options !== undefined) {
+            newField.options = properties[entry].options;
+          }
+          result.fields.push(newField);
+          switch (entryType) {
+            case "string":
+              newField.operators = [
+                { label: "is present", name: "present", fieldType: "none" },
+                { label: "is blank", name: "blank", fieldType: "none" },
+                { label: "is equal to", name: "equalTo", fieldType: "text" },
+                { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
+                { label: "includes", name: "includes", fieldType: "text" },
+                { label: "matches regex", name: "matchesRegex", fieldType: "text" },
+                { label: "is less than", name: "lessThan", fieldType: "text" },
+                { label: "is less than or equal to", name: "lessThanEqual", fieldType: "text" },
+                { label: "is greater than", name: "greaterThan", fieldType: "text" },
+                { label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text" }
+              ];
+              break;
+            case "number":
+              newField.operators = [
+                 { label: "is present", name: "present", fieldType: "none" },
+                 { label: "is blank", name: "blank", fieldType: "none" },
+                 { label: "is equal to", name: "equalTo", fieldType: "text" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
+                 { label: "is greater than", name: "greaterThan", fieldType: "text" },
+                 { label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text" },
+                 { label: "is less than", name: "lessThan", fieldType: "text" },
+                 { label: "is less than or equal to", name: "lessThanEqual", fieldType: "text" }
+              ];
+              break;
+            case "boolean":
+              newField.operators = [
+                 { label: "is blank", name: "blank", fieldType: "none" },
+                 { label: "is equal to", name: "equalTo", fieldType: "select" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "select" }
+              ];
+              newField.options = [{ name: "true", label: "true" }, { name: "false", label: "false" }];
+              break;
+            case "enum":
+              newField.operators = [
+                 { label: "is present", name: "present", fieldType: "none" },
+                 { label: "is blank", name: "blank", fieldType: "none" },
+                 { label: "is equal to", name: "equalTo", fieldType: "select" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "select" }
+              ];
+              break;
+          }
+          var defaultOperator = newField.operators[0].name;
+          if (properties[entry].defaultOperator !== undefined) {
+            defaultOperator = properties[entry].defaultOperator;
+          }
+          if (defaultConditions) {
+            result.data.all.push({
+              name: newField.name,
+              operator: defaultOperator,
+              value: defaultValue
+            });
+          }
+        }
+        return result;
+      }
+
+      function __JSONSchemaToConditionsConfig(schema, defaultConditions) {
         var result = {
           fields: [],
           data: { "all": [] }
@@ -267,8 +349,10 @@
           });
         }
 
-        for (condition in conditionsConfig) {
-          var condConf = conditionsConfig[condition];
+        var properties = conditionsConfig.properties;
+
+        for (condition in properties) {
+          var condConf = properties[condition];
           var updateFieldOption = {};
           var setFieldStateOption = {};
 
@@ -293,9 +377,10 @@
               break;
             case "bool":
             case "boolean":
+              var booleanOptions = [{ name: "true", label: "true" }, { name: "false", label: "false" }];
               updateFieldOption = {
                 label: capitalize(condition + " to"), name: condition + "Field", fields: [
-                 { label: "New Value", name: "newValue", fieldType: "select", options: condConf.options }
+                 { label: "New Value", name: "newValue", fieldType: "select", options: booleanOptions }
                 ]
               };
               setFieldStateOption = {
@@ -305,7 +390,7 @@
               };
               if (defaultActions) {
                 result.data.push({
-                  name: "action-select", value: "updateField", fields: [{ name: "fieldId", value: condition + "Field", fields: [{ name: "newValue", value: condConf.options[0].name }] }]
+                  name: "action-select", value: "updateField", fields: [{ name: "fieldId", value: condition + "Field", fields: [{ name: "newValue", value: booleanOptions[0].name }] }]
                 });
               }
               break;
