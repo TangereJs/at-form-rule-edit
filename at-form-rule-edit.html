@@ -340,9 +340,16 @@
           fields: [{ label: "Field", name: "fieldId", fieldType: "select", options: [] }]
         };
 
+        var copyFieldValueField = {
+          label: "Copy Field Value",
+          name: "copyFieldValue",
+          fields: [{ label: "Field", name: "fieldId", fieldType: "select", options: [] }]
+        };
+
         result.fields.push(showAlertField);
         result.fields.push(updateField);
         result.fields.push(setFieldStateField);
+        result.fields.push(copyFieldValueField);
         if (defaultActions) {
           result.data.push({
             name: "action-select", value: "alert", fields: [{ name: "message", value: "Hello world!" }]
@@ -413,10 +420,87 @@
               break;
           }
 
+          var copyFieldValueFieldOption = getCopyValueFieldOptionsFor(condition, properties);
+          if (copyFieldValueFieldOption.fields[0].options.length > 0) {
+            copyFieldValueField.fields[0].options.push(copyFieldValueFieldOption);
+          }
+
           updateField.fields[0].options.push(updateFieldOption);
           setFieldStateField.fields[0].options.push(setFieldStateOption);
         }
         return result;
+      }
+
+      function getCopyValueFieldOptionsFor(condition, properties) {
+        var result = {
+          label: capitalize(condition + " to"), name: condition + "Field", fields: [
+           { label: "New Value", name: "newValue", fieldType: "select", options: [] }
+          ]
+        };
+        var fieldsToAdd = [];
+
+        var condConf = properties[condition];
+
+        for (property in properties) {
+          if (condition !== property) { // if names are different
+            var propertyConf = properties[property];
+            var isTarget = isCopyTarget(condConf, propertyConf);
+            if (isTarget) {
+              fieldsToAdd.push({ label: property, name: property + "Field" });
+            }
+          }
+        }
+
+        result.fields[0].options = fieldsToAdd;
+        return result;
+      }
+
+      /**
+       * Determines whether targetConf can be a copy target for condConf
+       * @return true if it can, false otherwise
+       */
+      function isCopyTarget(condConf, targetConf) {
+
+        if (condConf.type !== targetConf.type) {
+          // if both have different type they are not compatible
+          return false;
+        }
+
+        if (condConf.xtype === undefined && targetConf.xtype === undefined) {
+          // if both are of the same type and do not have xtype and they are compatible
+          return true;
+        }
+
+        if ((condConf.xtype === undefined && targetConf.xtype !== undefined) || (condConf.xtype !== undefined && targetConf.xtype === undefined)) {
+          // if both have same type but one has xtype and other doesn't they are not compatible
+          return false;
+        }
+
+        if (condConf.xtype !== targetConf.xtype) {
+          // if both have same type but different xtypes they are not compatible
+          return false;
+        }
+
+        // at this point both have the same type and same xtype
+
+        if (condConf.xtype === 'enum') {
+          // compare xvaluelists
+          if (condConf.xvaluelist === undefined || targetConf.xvaluelist === undefined || condConf.xvaluelist !== targetConf.xvaluelist) {
+            // if any of the two doesn't have xvaluelist or xvaluelists are different they are not compatible
+            return false;
+          }
+        } else if (condConf.xtype === 'lookup') {
+          if (condConf.xurl === undefined || targetConf.xurl === undefined || condConf.xurl !== targetConf.xurl) {
+            // if any of the two doesn't have xurl or xurls are different they are not compatible
+            return false;
+          }
+        } else {
+          // xtype is not recognized; return false
+          return false;
+        }
+
+        // source and target are compatible; return true
+        return true;
       }
 
     })();
