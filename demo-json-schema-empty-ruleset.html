@@ -45,6 +45,7 @@
 
   <script>
     document.addEventListener('polymer-ready', function () {
+      /*
       var occupationOptions = [
         { label: "", name: "" },
         { label: "Software Engineer", name: "software-engineer" },
@@ -57,7 +58,7 @@
         { label: "Hidden", name: "hidden" },
         { label: "Disabled", name: "disabled" }
       ];
-
+      */
       var schema = {
         "properties":
         {
@@ -79,7 +80,7 @@
       //  "occupation": { "type": "enum", "options": occupationOptions }
       //};
 
-      window.test = this.$;
+      // window.test = this.$;
 
       // use window.test.ruleEdit.collectConditionsData() and window.test.ruleEdit.collectActionsData() to get changed values
       var ruleEdit = document.getElementById('ruleEdit');
