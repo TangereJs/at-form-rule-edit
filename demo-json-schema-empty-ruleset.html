@@ -7,12 +7,13 @@
   <script src="../webcomponentsjs/webcomponents.js"></script>
   <link rel="import" href="../polymer/polymer.html" />
   <link rel="import" href="at-form-rule-edit.html">
+  <link rel="import" href="../at-core-form/at-core-form.html" />
   <style>
     #demoForm {
       position: relative;
       top: 0px;
       right: 0px;
-      padding: 20px;
+      /*padding: 20px;*/
       width: 300px;
       background: #ddd;
     }
@@ -27,7 +28,7 @@
   <h2>Conditions and Actions Demo - empty ruleset</h2>
 
   <at-form-rule-edit id="ruleEdit" defaultactions="false" defaultconditions="false">
-    <form id="demoForm">
+    <!--<form id="demoForm">
       <h3>Try Changing These Values...</h3>
       <div><label>Name</label><input type="text" id="nameField" /></div>
       <div><label>Age</label><input type="text" id="ageField" size="2" /></div>
@@ -36,8 +37,11 @@
         <select id="occupationField"></select>
       </div>
       <div><button type="submit" id="submit">Run Conditions and Actions</button></div>
-    </form>
+    </form>-->
+    <at-core-form id="demoForm"></at-core-form>
+    <input type="submit" id="submit" value="submit" />
   </at-form-rule-edit>
+  
 
   <script>
     document.addEventListener('polymer-ready', function () {
@@ -54,7 +58,7 @@
         { label: "Disabled", name: "disabled" }
       ];
 
-      var conditionsConfig = {
+      var schema = {
         "properties":
         {
           "id": { "description": "The unique identifier for a product", "type": "number" },
@@ -79,26 +83,18 @@
 
       // use window.test.ruleEdit.collectConditionsData() and window.test.ruleEdit.collectActionsData() to get changed values
       var ruleEdit = document.getElementById('ruleEdit');
-      ruleEdit.schema = conditionsConfig;
+      ruleEdit.schema = schema;
       //this.$.ruleEdit.actions = actionsConfig;
       //ruleEdit.actions = conditionsConfig;
       //ruleEdit.actions = { fields: [], data: [] };
 
-      initializeForm(this);
+      var demoForm = document.getElementById('demoForm');
+      demoForm.schema = schema;
 
-      function initializeForm(pElement) {
-        var occupationField = document.getElementById('occupationField');
-        var ruleEdit = document.getElementById('ruleEdit');
-        var nameField = document.getElementById('nameField');
-        var ageField = document.getElementById('ageField');
+      initializeForm(demoForm);
+      
 
-        for (var i = 0; i < occupationOptions.length; i++) {
-          var o = occupationOptions[i];
-          var optionChild = document.createElement("option");
-          optionChild.value = o.name;
-          optionChild.text = o.label;
-          occupationField.appendChild(optionChild);
-        }
+      function initializeForm() {
 
         var submit = document.getElementById('submit');
         submit.addEventListener('click', function (e) {
@@ -109,10 +105,16 @@
             conditions: lConditions,
             actions: lActions
           });
+
+          // conditions adapter is pairs of
           var conditionsAdapter = {
-            nameField: nameField.value,
-            ageField: ageField.value,
-            occupationField: occupationField.value
+            "idField": demoForm.dataBindingObject["id"],
+            "nameField": demoForm.dataBindingObject["name"],
+            "cityField": demoForm.dataBindingObject["city"],
+            "activeField": demoForm.dataBindingObject["active"],
+            "activePeraField": demoForm.dataBindingObject["activePera"],
+            "dropdownDemoField": demoForm.dataBindingObject["dropdownDemo"],
+            "cardField": demoForm.dataBindingObject["card"]
           };
           var actionsAdapter = {
             alert: function (data) {
@@ -122,9 +124,11 @@
               console.log("data", data);
               var fieldId = data.find("fieldId");
               console.log("fieldId", fieldId);
-              var field = document.getElementById(fieldId);
               var val = data.find("fieldId", "newValue");
-              field.value = val;
+              fieldId = fieldId.replace('Field', '');
+              if (val === "true") { val = true; }
+              if (val === "false") { val = false;}
+              demoForm.dataBindingObject[fieldId] = val;
             }
           };
           engine.run(conditionsAdapter, actionsAdapter);
