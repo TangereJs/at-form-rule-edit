@@ -28,16 +28,6 @@
   <h2>Conditions and Actions Demo - empty ruleset</h2>
 
   <at-form-rule-edit id="ruleEdit" defaultactions="false" defaultconditions="false">
-    <!--<form id="demoForm">
-      <h3>Try Changing These Values...</h3>
-      <div><label>Name</label><input type="text" id="nameField" /></div>
-      <div><label>Age</label><input type="text" id="ageField" size="2" /></div>
-      <div>
-        <label>Occupation</label>
-        <select id="occupationField"></select>
-      </div>
-      <div><button type="submit" id="submit">Run Conditions and Actions</button></div>
-    </form>-->
     <at-core-form id="demoForm"></at-core-form>
     <input type="submit" id="submit" value="submit" />
   </at-form-rule-edit>
@@ -45,20 +35,6 @@
 
   <script>
     document.addEventListener('polymer-ready', function () {
-      /*
-      var occupationOptions = [
-        { label: "", name: "" },
-        { label: "Software Engineer", name: "software-engineer" },
-        { label: "Biz Dev", name: "biz-dev" },
-        { label: "Marketing", name: "marketing" }
-      ];
-      var stateOptions = [
-        { label: "Optional", name: "optional" },
-        { label: "Required", name: "required" },
-        { label: "Hidden", name: "hidden" },
-        { label: "Disabled", name: "disabled" }
-      ];
-      */
       var schema = {
         "properties":
         {
@@ -68,26 +44,16 @@
           "active": { "type": "boolean" },
           "activePera": { "type": "boolean", "description": "This is description for pera" },
           "dropdownDemo": { "title": "Name", "type": "string", "xtype": "enum", "xvaluelist": "XML,JSON", "default": "XML" },
-          "card": { "title": "Card", "type": "string", "xtype": "lookup", "xurl": "http://localhost:2014/Activity/adenin.GateKeeper.Content/card/" }
+          "card": { "title": "Card", "type": "string", "xtype": "lookup", "xurl": "http://localhost:2014/Activity/adenin.GateKeeper.Content/card/", "withCredentials": "true" }
         },
         "required": ["id", "city"]
       };
-
-      //var conditionsConfig = {
-      //  "name": { "type": "string" },
-      //  "age": { "type": "number" },
-      //  "booleanTest": { "type": "boolean", "default": "false", "options": [{ label: "true", name: "true" }, { label: "false", name: "false" }], "defaultOperator": "equalTo" },
-      //  "occupation": { "type": "enum", "options": occupationOptions }
-      //};
 
       // window.test = this.$;
 
       // use window.test.ruleEdit.collectConditionsData() and window.test.ruleEdit.collectActionsData() to get changed values
       var ruleEdit = document.getElementById('ruleEdit');
       ruleEdit.schema = schema;
-      //this.$.ruleEdit.actions = actionsConfig;
-      //ruleEdit.actions = conditionsConfig;
-      //ruleEdit.actions = { fields: [], data: [] };
 
       var demoForm = document.getElementById('demoForm');
       demoForm.schema = schema;
@@ -107,29 +73,25 @@
             actions: lActions
           });
 
-          // conditions adapter is pairs of
-          var conditionsAdapter = {
-            "idField": demoForm.dataBindingObject["id"],
-            "nameField": demoForm.dataBindingObject["name"],
-            "cityField": demoForm.dataBindingObject["city"],
-            "activeField": demoForm.dataBindingObject["active"],
-            "activePeraField": demoForm.dataBindingObject["activePera"],
-            "dropdownDemoField": demoForm.dataBindingObject["dropdownDemo"],
-            "cardField": demoForm.dataBindingObject["card"]
-          };
+          // conditions adapter is pairs of "property + 'Field'": demoForm.data[property]
+          var conditionsAdapter = {};
+          for (property in schema.properties) {
+            conditionsAdapter[property + 'Field'] = demoForm.data[property];
+          }
+
           var actionsAdapter = {
             alert: function (data) {
               alert(data.find("message"));
             },
             updateField: function (data) {
-              console.log("data", data);
+              //console.log("data", data);
               var fieldId = data.find("fieldId");
-              console.log("fieldId", fieldId);
+              //console.log("fieldId", fieldId);
               var val = data.find("fieldId", "newValue");
               fieldId = fieldId.replace('Field', '');
               if (val === "true") { val = true; }
               if (val === "false") { val = false;}
-              demoForm.dataBindingObject[fieldId] = val;
+              demoForm.data[fieldId] = val;
             }
           };
           engine.run(conditionsAdapter, actionsAdapter);

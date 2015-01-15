@@ -182,8 +182,8 @@
               newField.operators = [
                 { label: "is present", name: "present", fieldType: "none" },
                 { label: "is blank", name: "blank", fieldType: "none" },
-                { label: "is equal to", name: "equalTo", fieldType: "text" },
-                { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
+                { label: "is equal to", name: "equalTo", fieldType: "select" },
+                { label: "is not equal to", name: "notEqualTo", fieldType: "select" },
                 { label: "includes", name: "includes", fieldType: "text" },
                 { label: "matches regex", name: "matchesRegex", fieldType: "text" },
                 { label: "is less than", name: "lessThan", fieldType: "text" },
@@ -191,6 +191,14 @@
                 { label: "is greater than", name: "greaterThan", fieldType: "text" },
                 { label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text" }
               ];
+              if (properties[entry].xtype === "enum" && properties[entry].xvaluelist !== undefined) {
+                newField.options = [];
+                var valueList = properties[entry].xvaluelist.split(',');
+                for (value in valueList) {
+                  var trimValue = valueList[value].trim();
+                  newField.options.push({ name: trimValue, label: trimValue });
+                }
+              }
               break;
             case "number":
               newField.operators = [
@@ -366,11 +374,26 @@
           switch (condConf.type) {
             case "string":
             case "number":
-              updateFieldOption = {
-                label: capitalize(condition + " to"), name: condition + "Field", fields: [
-                 { label: "New Value", name: "newValue", fieldType: "text" }
-                ]
-              };
+              if (properties[condition].xtype === "enum" && properties[condition].xvaluelist !== undefined) {
+                var updateFieldOptions = [];
+                var valueList = properties[condition].xvaluelist.split(',');
+                for (value in valueList) {
+                  var trimValue = valueList[value].trim();
+                  updateFieldOptions.push({ name: trimValue, label: trimValue });
+                }
+                updateFieldOption = {
+                  label: capitalize(condition + " to"), name: condition + "Field", fields: [
+                   { label: "New Value", name: "newValue", fieldType: "select", options: updateFieldOptions }
+                  ]
+                };
+              } else {
+                updateFieldOption = {
+                  label: capitalize(condition + " to"), name: condition + "Field", fields: [
+                   { label: "New Value", name: "newValue", fieldType: "text" }
+                  ]
+                };
+              }
+
               setFieldStateOption = {
                 label: capitalize(condition), name: condition + "Field", fields: [
                  { label: "New state", name: "newState", fieldType: "select", options: stateOptions }
