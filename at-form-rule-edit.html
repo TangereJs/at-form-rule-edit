@@ -182,8 +182,8 @@
               newField.operators = [
                 { label: "is present", name: "present", fieldType: "none" },
                 { label: "is blank", name: "blank", fieldType: "none" },
-                { label: "is equal to", name: "equalTo", fieldType: "select" },
-                { label: "is not equal to", name: "notEqualTo", fieldType: "select" },
+                { label: "is equal to", name: "equalTo", fieldType: "text" },
+                { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
                 { label: "includes", name: "includes", fieldType: "text" },
                 { label: "matches regex", name: "matchesRegex", fieldType: "text" },
                 { label: "is less than", name: "lessThan", fieldType: "text" },
@@ -191,13 +191,37 @@
                 { label: "is greater than", name: "greaterThan", fieldType: "text" },
                 { label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text" }
               ];
+
               if (properties[entry].xtype === "enum" && properties[entry].xvaluelist !== undefined) {
+                newField.operators[2].fieldType = "select";
+                newField.operators[3].fieldType = "select";
+
                 newField.options = [];
                 var valueList = properties[entry].xvaluelist.split(',');
                 for (value in valueList) {
                   var trimValue = valueList[value].trim();
                   newField.options.push({ name: trimValue, label: trimValue });
                 }
+              }
+
+              var compareOptions = getCopyValueFieldOptionsFor(entry, properties);
+              if (compareOptions.fields[0].options.length > 0) {
+                newField.operators[2].fieldType = "select";
+                newField.operators[3].fieldType = "select";
+
+                if (newField.options !== undefined) {
+                  newField.options = [
+                    { name: "static", label: "Static", fieldType: "select", options: newField.options },
+                    { name: "field", label: "Field", fieldType: "select", options: [] }
+                  ];
+                } else {
+                  newField.options = [
+                    { name: "static", label: "Static", fieldType: "text" },
+                    { name: "field", label: "Field", fieldType: "select", options: [] }
+                  ];
+                }
+
+                newField.options[1].options = compareOptions.fields[0].options;
               }
               break;
             case "number":
@@ -211,6 +235,16 @@
                  { label: "is less than", name: "lessThan", fieldType: "text" },
                  { label: "is less than or equal to", name: "lessThanEqual", fieldType: "text" }
               ];
+
+              newField.options = [
+                { name: "static", label: "Static", fieldType: "text" },
+                { name: "field", label: "Field", fieldType: "select", options: [] }
+              ];
+
+              var compareOptions = getCopyValueFieldOptionsFor(entry, properties);
+              if (compareOptions.fields.length > 0) {
+                newField.options[1].options = compareOptions.fields[0].options;
+              }
               break;
             case "boolean":
               newField.operators = [
@@ -218,15 +252,35 @@
                  { label: "is equal to", name: "equalTo", fieldType: "select" },
                  { label: "is not equal to", name: "notEqualTo", fieldType: "select" }
               ];
-              newField.options = [{ name: "true", label: "true" }, { name: "false", label: "false" }];
+              newField.options = [
+                { name: "static", label: "Static", fieldType: "select", options: [{ name: "true", label: "true" }, { name: "false", label: "false" }] },
+                { name: "field", label: "Field", fieldType: "select", options: [] }
+              ];
+
+              var compareOptions = getCopyValueFieldOptionsFor(entry, properties);
+              if (compareOptions.fields.length > 0) {
+                newField.options[1].options = compareOptions.fields[0].options;
+              }
               break;
             case "enum":
               newField.operators = [
                  { label: "is present", name: "present", fieldType: "none" },
                  { label: "is blank", name: "blank", fieldType: "none" },
-                 { label: "is equal to", name: "equalTo", fieldType: "select" },
-                 { label: "is not equal to", name: "notEqualTo", fieldType: "select" }
+                 { label: "is equal to", name: "equalTo", fieldType: "text" },
+                 { label: "is not equal to", name: "notEqualTo", fieldType: "text" }
               ];
+
+              var compareOptions = getCopyValueFieldOptionsFor(entry, properties);
+              if (compareOptions.fields[0].options.length > 0) {
+                newField.operators[2].fieldType = "select";
+
+                newField.options = [
+                  { name: "static", label: "Static", fieldType: "text" },
+                  { name: "field", label: "Field", fieldType: "select", options: [] }
+                ];
+
+                newField.options[1].options = compareOptions.fields[0].options;
+              }
               break;
           }
           var defaultOperator = newField.operators[0].name;
