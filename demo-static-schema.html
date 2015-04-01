@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <title>Conditions Demo</title>
@@ -17,67 +18,135 @@
       width: 300px;
       background: #ddd;
     }
-
-      #peraForm div {
-        margin: 10px 0;
-      }
+    
+    #peraForm div {
+      margin: 10px 0;
+    }
   </style>
 
 </head>
-<body unresolved>
+
+<body>
   <h2>Conditions and Actions Demo - static schema</h2>
 
   <at-form-rule-edit id="peraRules">
     <form id="peraForm">
       <h3>Try Changing These Values...</h3>
-      <div><label>Damage</label><input type="text" id="damageField" /></div>
-      <div><label>Health</label><input type="text" id="healthField" /></div>
+      <div>
+        <label>Damage</label>
+        <input type="text" id="damageField" />
+      </div>
+      <div>
+        <label>Health</label>
+        <input type="text" id="healthField" />
+      </div>
       <div>
         <label>Enemy</label>
         <select id="enemyField"></select>
       </div>
-      <div><button type="submit" id="perasubmit">Run Conditions and Actions</button></div>
+      <div>
+        <button type="submit" id="perasubmit">Run Conditions and Actions</button>
+      </div>
     </form>
   </at-form-rule-edit>
 
   <script>
-    document.addEventListener('polymer-ready', function () {
+    document.addEventListener('WebComponentsReady', function () {
 
       var enemyOptions = [
-        { label: "", name: "" },
-        { label: "Enemy1", name: "enemy1" },
-        { label: "Enemy2", name: "enemy2" },
-        { label: "Enemy3", name: "enemy3" },
+        {
+          label: "",
+          name: ""
+        },
+        {
+          label: "Enemy1",
+          name: "enemy1"
+        },
+        {
+          label: "Enemy2",
+          name: "enemy2"
+        },
+        {
+          label: "Enemy3",
+          name: "enemy3"
+        },
       ];
 
       // this is for the peraForm
       var peraConditionsConfig = {
         fields: [
           {
-            label: "Damage", name: "damageField", operators: [
-             { label: "is equal to", name: "equalTo", fieldType: "text" },
-             { label: "is not equal to", name: "notEqualTo", fieldType: "text" },
+            label: "Damage",
+            name: "damageField",
+            operators: [
+              {
+                label: "is equal to",
+                name: "equalTo",
+                fieldType: "text"
+              },
+              {
+                label: "is not equal to",
+                name: "notEqualTo",
+                fieldType: "text"
+              },
             ]
           },
           {
-            label: "Health", name: "healthField", operators: [
-             { label: "is greater than or equal to", name: "greaterThanEqual", fieldType: "text" },
-             { label: "is less than or equal to", name: "lessThanEqual", fieldType: "text" },
+            label: "Health",
+            name: "healthField",
+            operators: [
+              {
+                label: "is greater than or equal to",
+                name: "greaterThanEqual",
+                fieldType: "text"
+              },
+              {
+                label: "is less than or equal to",
+                name: "lessThanEqual",
+                fieldType: "text"
+              },
             ]
           },
           {
-            label: "Enemy", name: "enemyField", options: enemyOptions, operators: [
-             { label: "is present", name: "present", fieldType: "none" },
-             { label: "is blank", name: "blank", fieldType: "none" },
-             { label: "is equal to", name: "equalTo", fieldType: "select" },
-             { label: "is not equal to", name: "notEqualTo", fieldType: "select" },
+            label: "Enemy",
+            name: "enemyField",
+            options: enemyOptions,
+            operators: [
+              {
+                label: "is present",
+                name: "present",
+                fieldType: "none"
+              },
+              {
+                label: "is blank",
+                name: "blank",
+                fieldType: "none"
+              },
+              {
+                label: "is equal to",
+                name: "equalTo",
+                fieldType: "select"
+              },
+              {
+                label: "is not equal to",
+                name: "notEqualTo",
+                fieldType: "select"
+              },
             ]
           }
         ],
         data: {
           "all": [
-            { name: "damageField", operator: "equalTo", value: "50" },
-            { name: "healthField", operator: "lessThanEqual", value: "49" }
+            {
+              name: "damageField",
+              operator: "equalTo",
+              value: "50"
+            },
+            {
+              name: "healthField",
+              operator: "lessThanEqual",
+              value: "49"
+            }
           ]
         }
       }; // end of conditions config
@@ -85,27 +154,57 @@
       var peraActionsConfig = {
         fields: [
           {
-            label: "Show Alert", name: "alert", fields: [
-             { label: "Message", name: "message", fieldType: "textarea" }
+            label: "Show Alert",
+            name: "alert",
+            fields: [
+              {
+                label: "Message",
+                name: "message",
+                fieldType: "textarea"
+              }
             ]
           },
           {
-            label: "Update Field", name: "updateField", fields: [
-             {
-               label: "Field", name: "fieldId", fieldType: "select", options: [
-                {
-                  label: "Damage to", name: "damageField", fields: [
-                   { label: "New Value", name: "newValue", fieldType: "text" }
+            label: "Update Field",
+            name: "updateField",
+            fields: [
+              {
+                label: "Field",
+                name: "fieldId",
+                fieldType: "select",
+                options: [
+                  {
+                    label: "Damage to",
+                    name: "damageField",
+                    fields: [
+                      {
+                        label: "New Value",
+                        name: "newValue",
+                        fieldType: "text"
+                      }
                   ]
                 },
-                {
-                  label: "Health to", name: "healthField", fields: [
-                   { label: "New Value", name: "newValue", fieldType: "text" }
+                  {
+                    label: "Health to",
+                    name: "healthField",
+                    fields: [
+                      {
+                        label: "New Value",
+                        name: "newValue",
+                        fieldType: "text"
+                      }
                   ]
                 },
-                {
-                  label: "Enemy to", name: "enemyField", fields: [
-                   { label: "New Value", name: "newValue", fieldType: "select", options: enemyOptions }
+                  {
+                    label: "Enemy to",
+                    name: "enemyField",
+                    fields: [
+                      {
+                        label: "New Value",
+                        name: "newValue",
+                        fieldType: "select",
+                        options: enemyOptions
+                      }
                   ]
                 }
                ]
@@ -115,15 +214,27 @@
         ],
         data: [
           {
-            name: "action-select", value: "alert", fields: [
-             { name: "message", value: "You have been ... !" }
+            name: "action-select",
+            value: "alert",
+            fields: [
+              {
+                name: "message",
+                value: "You have been ... !"
+              }
             ]
           },
           {
-            name: "action-select", value: "updateField", fields: [
-             {
-               name: "fieldId", value: "enemyField", fields: [
-                { name: "newValue", value: "enemy3" }
+            name: "action-select",
+            value: "updateField",
+            fields: [
+              {
+                name: "fieldId",
+                value: "enemyField",
+                fields: [
+                  {
+                    name: "newValue",
+                    value: "enemy3"
+                  }
                ]
              }
             ]
@@ -183,4 +294,5 @@
     });
   </script>
 </body>
+
 </html>

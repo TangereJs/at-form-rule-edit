@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <title>Conditions Demo</title>
@@ -14,37 +15,64 @@
       top: 0px;
       right: 0px;
       /*padding: 20px;*/
+      
       width: 300px;
       background: #ddd;
     }
-
-      #demoForm div {
-        margin: 10px 0;
-      }
+    
+    #demoForm div {
+      margin: 10px 0;
+    }
   </style>
 
 </head>
-<body unresolved>
+
+<body>
   <h2>Conditions and Actions Demo - empty ruleset</h2>
 
   <at-form-rule-edit id="ruleEdit" defaultactions="false" defaultconditions="false">
     <at-core-form id="demoForm"></at-core-form>
     <input type="submit" id="submit" value="submit" />
   </at-form-rule-edit>
-  
+
 
   <script>
-    document.addEventListener('polymer-ready', function () {
+    document.addEventListener('WebComponentsReady', function () {
       var schema = {
-        "properties":
-        {
-          "id": { "description": "The unique identifier for a product", "type": "number" },
-          "name": { "type": "string", "required": "true", "xinputmode": "required" },
-          "city": { "type": "string", "default": "Default city name" },
-          "active": { "type": "boolean" },
-          "activePera": { "type": "boolean", "description": "This is description for pera" },
-          "dropdownDemo": { "title": "Name", "type": "string", "xtype": "enum", "xvaluelist": "XML,JSON", "default": "XML" },
-          "card": { "title": "Card", "type": "string", "xtype": "lookup", "xurl": "http://localhost:2014/Activity/adenin.GateKeeper.Content/card/", "withCredentials": "true" }
+        "properties": {
+          "id": {
+            "description": "The unique identifier for a product",
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "required": "true",
+            "xinputmode": "required"
+          },
+          "city": {
+            "type": "string",
+            "default": "Default city name"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "activePera": {
+            "type": "boolean",
+            "description": "This is description for pera"
+          },
+          "dropdownDemo": {
+            "title": "Name",
+            "type": "string",
+            "xtype": "enum",
+            "xvaluelist": "XML,JSON",
+            "default": "XML"
+          },
+          "card": {
+            "title": "Card",
+            "type": "string",
+            "xtype": "lookup",
+            "xurl": "http://localhost:2014/Activity/adenin.GateKeeper.Content/card/"
+          }
         },
         "required": ["id", "city"]
       };
@@ -59,7 +87,7 @@
       demoForm.schema = schema;
 
       initializeForm(demoForm);
-      
+
 
       function initializeForm() {
 
@@ -89,8 +117,12 @@
               //console.log("fieldId", fieldId);
               var val = data.find("fieldId", "newValue");
               fieldId = fieldId.replace('Field', '');
-              if (val === "true") { val = true; }
-              if (val === "false") { val = false;}
+              if (val === "true") {
+                val = true;
+              }
+              if (val === "false") {
+                val = false;
+              }
               demoForm.data[fieldId] = val;
             }
           };
@@ -101,4 +133,5 @@
   </script>
 
 </body>
+
 </html>
