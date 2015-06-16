@@ -108,40 +108,94 @@
     Polymer({
       is: 'at-form-rule-edit',
       properties: {
+        // this is the schema part
+        ruleConfig: {
+          type: Object,
+          value: function () {
+            return {
+              conditions: {},
+              actions: {}
+            };
+          },
+          observer: 'ruleConfigChanged'
+        },
+        // this is the data part
+        ruleValue: {
+          type: Object,
+          value: function () {
+            return {
+              conditions: {
+                "all": []
+              },
+              actions: {}
+            };
+          },
+          observer: 'ruleValueChanged'
+        },
         schema: {
           type: Object,
           value: '',
           observer: 'schemaChanged'
-        },
-        conditions: {
-          type: Array,
-          value: [],
-          observer: 'conditionsChanged'
-        },
-
-        actions: {
-          type: Array,
-          value: [],
-          observer: 'actionsChanged'
         },
         defaultConditions: true,
         defaultActions: true,
       },
       conditionsArray: [], // this is used to avoid double conditions object
       actionsArray: [], // this is used to avoid double conditions object
-      conditionsBuilder: {},
+      conditionsBuilder: false,
       conditionsHtml: '',
-      actionsBuilder: {},
+      actionsBuilder: false,
       actionsHtml: '',
       _isReady: false,
-
+      _scopeCssViaAttr: true,
       ready: function () {
         this._isReady = true;
       },
+      initBuilders: function () {
+        if (!this.conditionsBuilder) {
+          this.conditionsBuilder = RuleEngineHelpers.conditionsBuilder.call(this);
+        }
+        if (!this.actionsBuilder) {
+          this.actionsBuilder = RuleEngineHelpers.actionsBuilder.call(this);
+        }
+      },
+      ruleConfigChanged: function (newValue, oldValue) {
+        this.initBuilders();
+        if (this.ruleConfig && this.ruleConfig.conditions) {
+          this.conditionsBuilder.setConditions(this.ruleConfig.conditions);
+          this._rebuildConditionsHtml();
+        }
+        if (this.ruleConfig && this.ruleConfig.actions) {
+          this.actionsBuilder.setActions(this.ruleConfig.actions);
+          this._rebuildActionsHtml();
+        }
+      },
+      ruleValueChanged: function (newValue, oldValue) {
+        this.initBuilders();
+        if (this.ruleValue && this.ruleValue.conditions) {
+          this.conditionsBuilder.setData(this.ruleValue.conditions);
+          this._rebuildConditionsHtml();
+        }
+        if (this.ruleValue && this.ruleValue.actions) {
+          this.actionsBuilder.setData(this.ruleValue.actions);
+          this._rebuildActionsHtml();
+        }
+      },
+      _rebuildConditionsHtml: function () {
+        removeAllChildren(this.$.conditions);
+        this.conditionsHtml = this.conditionsBuilder.buildConditionsHtml();
+        Polymer.dom(this.$.conditions).appendChild(this.conditionsHtml);
+      },
+      _rebuildActionsHtml: function () {
+        removeAllChildren(this.$.actions);
+        this.actionsHtml = this.actionsBuilder.buildActionsHtml();
+        Polymer.dom(this.$.actions).appendChild(this.actionsHtml);
+      },
+
       schemaChanged: function (newValue, oldValue) {
         if (this._isReady) {
-          this.conditions = newValue;
-          this.actions = newValue;
+          this.conditionsChanged(newValue, {});
+          this.actionsChanged(newValue, {});
         }
       },
       conditionsChanged: function (newValue, oldValue) {
