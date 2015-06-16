@@ -248,6 +248,7 @@
       peraRules.ruleValue = ruleData;
 
       initializePeraForm(peraRules);
+      window.peraRules = peraRules; // make it global, just for testing 
 
       function initializePeraForm(pElement) {
         var enemyField = document.getElementById('enemyField');
