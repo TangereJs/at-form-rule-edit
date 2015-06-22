@@ -49,9 +49,14 @@
       </div>
     </form>
   </at-form-rule-edit>
-
+  <div>
+    <h3>Rule value echo:</h3>
+    <div id="ruleValueEcho"></div>
+  </div>
   <script>
     document.addEventListener('WebComponentsReady', function () {
+
+      var ruleValueEcho = document.getElementById('ruleValueEcho');
 
       var enemyOptions = [
         {
@@ -242,10 +247,15 @@
       };
 
       var peraRules = document.getElementById('peraRules');
-//      peraRules.conditions = peraConditionsConfig;
-//      peraRules.actions = peraActionsConfig;
+      //      peraRules.conditions = peraConditionsConfig;
+      //      peraRules.actions = peraActionsConfig;
       peraRules.ruleConfig = ruleConfig;
-      peraRules.ruleValue = ruleData;
+      //      peraRules.ruleValue = ruleData;
+
+      peraRules.addEventListener('value-changed', function (event) {
+        var jsonValue = JSON.stringify(event.detail);
+        ruleValueEcho.textContent = jsonValue;
+      });
 
       initializePeraForm(peraRules);
       window.peraRules = peraRules; // make it global, just for testing 

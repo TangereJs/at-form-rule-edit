@@ -120,17 +120,18 @@
           observer: 'ruleConfigChanged'
         },
         // this is the data part
-        ruleValue: {
+        value: {
           type: Object,
           value: function () {
             return {
               conditions: {
-                "all": []
+                "all": [] // "all is needed because add rule interface is not displayed if conditions object is empty
               },
               actions: {}
             };
           },
-          observer: 'ruleValueChanged'
+          notify: true,
+          observer: 'valueChanged'
         },
         schema: {
           type: Object,
@@ -152,11 +153,28 @@
         this._isReady = true;
       },
       initBuilders: function () {
+        var self = this;
         if (!this.conditionsBuilder) {
           this.conditionsBuilder = RuleEngineHelpers.conditionsBuilder.call(this);
+          this.conditionsBuilder.on('update', function (updateEvent) {
+            // this is microevents solution
+            // conditionsBuilder provides for update event
+            // update event is fired when (sub)conditions are added / removed / modified
+            // self.set('value.conditions', self.collectConditionsData());            
+            self.value.conditions = self.collectConditionsData();
+            self.fire('value-changed', self.value);
+          });
         }
         if (!this.actionsBuilder) {
           this.actionsBuilder = RuleEngineHelpers.actionsBuilder.call(this);
+          this.actionsBuilder.on('update', function (updateEvent) {
+            // this is microevents solution
+            // conditionsBuilder provides for update event
+            // update event is fired when (sub)conditions are added / removed / modified
+            //            self.set('value.actions', self.collectActionsData());
+            self.value.actions = self.collectActionsData();
+            self.fire('value-changed', self.value);
+          });
         }
       },
       ruleConfigChanged: function (newValue, oldValue) {
@@ -170,14 +188,14 @@
           this._rebuildActionsHtml();
         }
       },
-      ruleValueChanged: function (newValue, oldValue) {
+      valueChanged: function (newValue, oldValue) {
         this.initBuilders();
-        if (this.ruleValue && this.ruleValue.conditions) {
-          this.conditionsBuilder.setData(this.ruleValue.conditions);
+        if (this.value && this.value.conditions) {
+          this.conditionsBuilder.setData(this.value.conditions);
           this._rebuildConditionsHtml();
         }
-        if (this.ruleValue && this.ruleValue.actions) {
-          this.actionsBuilder.setData(this.ruleValue.actions);
+        if (this.value && this.value.actions) {
+          this.actionsBuilder.setData(this.value.actions);
           this._rebuildActionsHtml();
         }
       },
