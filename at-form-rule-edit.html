@@ -288,7 +288,8 @@
 
         var newField = {
           label: capitalize(entry),
-          name: entry + 'Field',
+//          name: entry + 'Field',
+          name: entry,
           operators: []
         };
         if (properties[entry].options !== undefined) {
@@ -586,6 +587,7 @@
         var newField = {
           label: capitalize(entry),
           name: entry + 'Field',
+//          name: entry,
           operators: []
         };
         if (schema[entry].options !== undefined) {
