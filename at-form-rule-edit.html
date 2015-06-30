@@ -256,14 +256,24 @@
       }
     }
 
-    function initializeConditions(pElement) {
-      pElement.conditionsBuilder = RuleEngineHelpers.conditionsBuilder(pElement.conditionsArray);
+    function initializeConditions(pElement) {      
+      if (!pElement.conditionsBuilder) {
+        pElement.conditionsBuilder = RuleEngineHelpers.conditionsBuilder(pElement.conditionsArray);
+      } else {
+        pElement.conditionsBuilder.setConditions(pElement.conditionsArray.fields);
+        pElement.conditionsBuilder.setData(pElement.conditionsArray.data);
+      }      
       pElement.conditionsHtml = pElement.conditionsBuilder.buildConditionsHtml();
       Polymer.dom(pElement.$.conditions).appendChild(pElement.conditionsHtml);
     }
 
     function initializeActions(pElement) {
-      pElement.actionsBuilder = RuleEngineHelpers.actionsBuilder(pElement.actionsArray);
+      if (!pElement.actionsBuilder) {
+        pElement.actionsBuilder = RuleEngineHelpers.actionsBuilder(pElement.actionsArray);
+      } else {
+        pElement.actionsBuilder.setActions(pElement.actionsArray.fields);
+        pElement.actionsBuilder.setData(pElement.actionsArray.data);
+      }      
       pElement.actionsHtml = pElement.actionsBuilder.buildActionsHtml();
       Polymer.dom(pElement.$.actions).appendChild(pElement.actionsHtml);
     }
