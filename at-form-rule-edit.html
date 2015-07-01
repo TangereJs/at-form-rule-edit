@@ -138,6 +138,11 @@
           value: '',
           observer: 'schemaChanged'
         },
+        disabled: {
+          type: Boolean,
+          value: false,
+          observer: 'disabledChanged'
+        },
         defaultConditions: true,
         defaultActions: true,
       },
@@ -151,6 +156,91 @@
       _scopeCssViaAttr: true,
       ready: function () {
         this._isReady = true;
+      },
+      disabledChanged: function (newValue, oldValue) {
+        var
+          selectIndex,
+          selectElement,
+          selectElements = [],
+          inputIndex,
+          inputElement,
+          inputElements = [],
+          aIndex,
+          aElement,
+          aElements = [],
+          textAreaIndex,
+          textAreaElement,
+          textAreaElements = [],
+          tmp;
+
+        if (this.conditionsHtml !== '') {
+          tmp = this.conditionsHtml.querySelectorAll('select');
+          if (tmp.length > 0) {
+            pushArray1IntoArray2(tmp, selectElements);
+          }
+          tmp = this.conditionsHtml.querySelectorAll('input');
+          if (tmp.length > 0) {
+            pushArray1IntoArray2(tmp, inputElements);
+          }
+          tmp = this.conditionsHtml.querySelectorAll('button');
+          if (tmp.length > 0) {
+            pushArray1IntoArray2(tmp, aElements);
+          }
+        }
+        if (this.actionsHtml !== '') {
+          tmp = this.actionsHtml.querySelectorAll('select');
+          if (tmp.length > 0) {
+            pushArray1IntoArray2(tmp, selectElements);
+          }
+          tmp = this.actionsHtml.querySelectorAll('input');
+          if (tmp.length > 0) {
+            pushArray1IntoArray2(tmp, inputElements);
+          }
+          tmp = this.actionsHtml.querySelectorAll('button');
+          if (tmp.length > 0) {
+            pushArray1IntoArray2(tmp, aElements);
+          }
+          tmp = this.actionsHtml.querySelectorAll('textarea');
+          if (tmp.length > 0) {
+            pushArray1IntoArray2(tmp, textAreaElements);
+          }
+        }
+
+        if (newValue) {
+          for (selectIndex = 0; selectIndex < selectElements.length; selectIndex += 1) {
+            selectElement = selectElements[selectIndex];
+            selectElement.setAttribute('disabled', 'disabled');
+          }
+          for (inputIndex = 0; inputIndex < inputElements.length; inputIndex += 1) {
+            inputElement = inputElements[inputIndex];
+            inputElement.setAttribute('disabled', 'disabled');
+          }
+          for (aIndex = 0; aIndex < aElements.length; aIndex += 1) {
+            aElement = aElements[aIndex];
+            aElement.setAttribute('disabled', 'disabled');
+          }
+          for (textAreaIndex = 0; textAreaIndex < textAreaElements.length; textAreaIndex += 1) {
+            textAreaElement = textAreaElements[textAreaIndex];
+            textAreaElement.setAttribute('disabled', 'disabled');
+          }
+        } else {
+          for (selectIndex = 0; selectIndex < selectElements.length; selectIndex += 1) {
+            selectElement = selectElements[selectIndex];
+            selectElement.removeAttribute('disabled');
+          }
+          for (inputIndex = 0; inputIndex < inputElements.length; inputIndex += 1) {
+            inputElement = inputElements[inputIndex];
+            inputElement.removeAttribute('disabled');
+          }
+          for (aIndex = 0; aIndex < aElements.length; aIndex += 1) {
+            aElement = aElements[aIndex];
+            aElement.removeAttribute('disabled');
+          }
+          for (textAreaIndex = 0; textAreaIndex < textAreaElements.length; textAreaIndex += 1) {
+            textAreaElement = textAreaElements[textAreaIndex];
+            textAreaElement.removeAttribute('disabled');
+          }
+        }
       },
       initBuilders: function () {
         var self = this;
@@ -203,11 +293,13 @@
         removeAllChildren(this.$.conditions);
         this.conditionsHtml = this.conditionsBuilder.buildConditionsHtml();
         Polymer.dom(this.$.conditions).appendChild(this.conditionsHtml);
+        this.disabledChanged(this.disabled, this.disabled);
       },
       _rebuildActionsHtml: function () {
         removeAllChildren(this.$.actions);
         this.actionsHtml = this.actionsBuilder.buildActionsHtml();
         Polymer.dom(this.$.actions).appendChild(this.actionsHtml);
+        this.disabledChanged(this.disabled, this.disabled);
       },
 
       schemaChanged: function (newValue, oldValue) {
@@ -256,13 +348,13 @@
       }
     }
 
-    function initializeConditions(pElement) {      
+    function initializeConditions(pElement) {
       if (!pElement.conditionsBuilder) {
         pElement.conditionsBuilder = RuleEngineHelpers.conditionsBuilder(pElement.conditionsArray);
       } else {
         pElement.conditionsBuilder.setConditions(pElement.conditionsArray.fields);
         pElement.conditionsBuilder.setData(pElement.conditionsArray.data);
-      }      
+      }
       pElement.conditionsHtml = pElement.conditionsBuilder.buildConditionsHtml();
       Polymer.dom(pElement.$.conditions).appendChild(pElement.conditionsHtml);
     }
@@ -273,7 +365,7 @@
       } else {
         pElement.actionsBuilder.setActions(pElement.actionsArray.fields);
         pElement.actionsBuilder.setData(pElement.actionsArray.data);
-      }      
+      }
       pElement.actionsHtml = pElement.actionsBuilder.buildActionsHtml();
       Polymer.dom(pElement.$.actions).appendChild(pElement.actionsHtml);
     }
@@ -298,7 +390,7 @@
 
         var newField = {
           label: capitalize(entry),
-//          name: entry + 'Field',
+          //          name: entry + 'Field',
           name: entry,
           operators: []
         };
@@ -597,7 +689,7 @@
         var newField = {
           label: capitalize(entry),
           name: entry + 'Field',
-//          name: entry,
+          //          name: entry,
           operators: []
         };
         if (schema[entry].options !== undefined) {
@@ -968,6 +1060,22 @@
           }
           break;
         case "enum":
+          var condConfOptions;
+          if (condConf.options) {
+            condConfOptions = condConf.options
+          } else if (condConf.xvaluelist) {
+            condConfOptions = [];
+            var valueListItems = condConf.xvaluelist.split(',');
+            for (var vlItemsIndex = 0; vlItemsIndex < valueListItems.length; vlItemsIndex += 1) {
+              var trimmedValue = valueListItems[vlItemsIndex].trim();
+              var ccOption = {
+                label: trimmedValue,
+                name: trimmedValue
+              };
+              condConfOptions.push(ccOption);
+            }
+          }
+
           updateFieldOption = {
             label: capitalize(condition + " to"),
             name: condition + "Field",
@@ -976,7 +1084,7 @@
                 label: "New Value",
                 name: "newValue",
                 fieldType: "select",
-                options: condConf.options
+                options: condConfOptions
               }
                 ]
           };
@@ -1100,6 +1208,15 @@
 
       // source and target are compatible; return true
       return true;
+    }
+
+    function pushArray1IntoArray2(array1, array2) {
+      var
+        arr1Index;
+
+      for (arr1Index = 0; arr1Index < array1.length; arr1Index += 1) {
+        array2.push(array1[arr1Index]);
+      }
     }
 
   })();
