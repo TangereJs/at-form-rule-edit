@@ -113,7 +113,6 @@
         },
         actions: [
           {
-            "name": "action-select",
             "value": "alert",
             "fields": [{
               "name": "message",
@@ -121,7 +120,6 @@
             }]
           },
           {
-            "name": "action-select",
             "value": "updateField",
             "fields": [{
               "name": "fieldId",
@@ -133,7 +131,6 @@
             }]
           },
           {
-            "name": "action-select",
             "value": "setFieldState",
             "fields": [{
               "name": "fieldId",
@@ -145,7 +142,6 @@
             }]
           },
           {
-            "name": "action-select",
             "value": "copyFieldValue",
             "fields": [{
               "name": "fieldId",
@@ -174,49 +170,7 @@
 
         submit.addEventListener('click', function (e) {
           e.preventDefault();
-          var lConditions = ruleEdit.collectConditionsData();
-          var lActions = ruleEdit.collectActionsData();
-          var engine = new RuleEngine({
-            conditions: lConditions,
-            actions: lActions
-          });
-
-          var conditionsAdapter = coreForm.data;
-          var actionsAdapter = {
-            alert: function (data) {
-              alert(data.find("message"));
-            },
-            updateField: function (data) {
-              console.log("data", data);
-              var fieldId = data.find("fieldId");
-              console.log("fieldId", fieldId);
-              fieldId = fieldId.replace('Field', '');
-              var val = data.find("fieldId", "newValue");
-              if (val === "true") {
-                val = true;
-              }
-              if (val === "false") {
-                val = false;
-              }
-              coreForm.updateFormElementData(fieldId, val);
-            },
-            setFieldState: function (data) {
-              var fieldId = data.find("fieldId");
-              var val = data.find("fieldId", "newState");
-              fieldId = fieldId.replace('Field', '');
-              coreForm.setElementState(fieldId, val, val);
-            },
-            copyFieldValue: function (data) {
-              var srcFieldId = data.find('fieldId');
-              srcFieldId = srcFieldId.replace('Field', '');
-              var destFieldId = data.find('newValue');
-
-              var srcValue = coreForm.data[srcFieldId];
-              destFieldId = destFieldId.replace('Field', '');
-              coreForm.updateFormElementData(destFieldId, srcValue);
-            }
-          };
-          engine.run(conditionsAdapter, actionsAdapter);
+          ruleEdit.checkAgainst(coreForm);
         });
       }
 

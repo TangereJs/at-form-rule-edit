@@ -105,6 +105,7 @@
 
 <script>
   (function () {
+    'use strict';
     Polymer({
       is: 'at-form-rule-edit',
       properties: {
@@ -339,6 +340,57 @@
       collectActionsData: function () {
         var actionsData = this.actionsBuilder.collectData(undefined, this.actionsHtml);
         return actionsData;
+      },
+
+      // *ij* #638 upgrades
+      // this function checks provided conditions and actions against a at-core-form
+      checkAgainst: function (coreForm, customActionsAdapter) {
+
+        var lConditions = ruleEdit.collectConditionsData();
+        var lActions = ruleEdit.collectActionsData();
+        var engine = new RuleEngine({
+          conditions: lConditions,
+          actions: lActions
+        });
+
+        var conditionsAdapter = coreForm.data;
+        var actionsAdapter = {
+          alert: function (data) {
+            alert(data.find("message"));
+          },
+          updateField: function (data) {
+            var fieldId = data.find("fieldId");
+            fieldId = fieldId.replace('Field', '');
+            var val = data.find("fieldId", "newValue");
+            if (val === "true") {
+              val = true;
+            }
+            if (val === "false") {
+              val = false;
+            }
+            coreForm.updateFormElementData(fieldId, val);
+          },
+          setFieldState: function (data) {
+            var fieldId = data.find("fieldId");
+            var val = data.find("fieldId", "newState");
+            fieldId = fieldId.replace('Field', '');
+            coreForm.setElementState(fieldId, val, val);
+          },
+          copyFieldValue: function (data) {
+            var srcFieldId = data.find('fieldId');
+            srcFieldId = srcFieldId.replace('Field', '');
+            var destFieldId = data.find('newValue');
+
+            var srcValue = coreForm.data[srcFieldId];
+            destFieldId = destFieldId.replace('Field', '');
+            coreForm.updateFormElementData(destFieldId, srcValue);
+          }
+        };
+        if (customActionsAdapter) {
+          engine.run(conditionsAdapter, customActionsAdapter);
+        } else {
+          engine.run(conditionsAdapter, actionsAdapter);
+        }
       }
     });
 
@@ -382,7 +434,9 @@
         }
       };
 
-      var properties = schema.properties;
+      var
+        entry,
+        properties = schema.properties;
 
       for (entry in properties) {
         var entryType = properties[entry].type;
@@ -452,7 +506,7 @@
               fieldType: "text"
             }
               ];
-
+          var value;
           if (properties[entry].xtype === "enum" && properties[entry].xvaluelist !== undefined) {
             newField.operators[2].fieldType = "select";
             newField.operators[3].fieldType = "select";
@@ -938,7 +992,10 @@
         });
       }
 
-      var properties = conditionsConfig.properties;
+      var
+        condition,
+        value,
+        properties = conditionsConfig.properties;
 
       for (condition in properties) {
         var condConf = properties[condition];
@@ -1143,7 +1200,9 @@
       };
       var fieldsToAdd = [];
 
-      var condConf = properties[condition];
+      var
+        property,
+        condConf = properties[condition];
 
       for (property in properties) {
         if (condition !== property) { // if names are different
