@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>at-form-actions Demo</title>
+
+  <script src="../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../polymer/polymer.html" />
+  <link rel="import" href="at-form-actions.html" />
+</head>
+
+<body>
+  <div>
+    <h2>Actions Demo - static schema</h2>
+    <at-form-actions id="afActions1">
+    </at-form-actions>
+    <div>
+      <h3>Actions value echo:</h3>
+      <div id="actionsValueEcho1"></div>
+    </div>
+  </div>
+  <div>
+    <h2>Actions Demo - json schema</h2>
+    <at-form-actions id="afActions2">
+    </at-form-actions>
+    <div>
+      <h3>Actions value echo:</h3>
+      <div id="actionsValueEcho2"></div>
+    </div>
+  </div>
+  <div>
+    <h2>Actions Demo - static schema disabled</h2>
+    <at-form-actions id="afActions3" disabled>
+    </at-form-actions>
+    <div>
+      <h3>Actions value echo:</h3>
+      <div id="actionsValueEcho3"></div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('WebComponentsReady', function() {
+
+      var enemyOptions = [{
+        label: "",
+        name: ""
+      }, {
+        label: "Enemy1",
+        name: "enemy1"
+      }, {
+        label: "Enemy2",
+        name: "enemy2"
+      }, {
+        label: "Enemy3",
+        name: "enemy3"
+      }, ];
+
+      var config = [{
+        label: "Show Alert",
+        name: "alert",
+        fields: [{
+          label: "Message",
+          name: "message",
+          fieldType: "textarea"
+        }]
+      }, {
+        label: "Update Field",
+        name: "updateField",
+        fields: [{
+          label: "Field",
+          name: "fieldId",
+          fieldType: "select",
+          options: [{
+            label: "Damage to",
+            name: "damageField",
+            fields: [{
+              label: "New Value",
+              name: "newValue",
+              fieldType: "text"
+            }]
+          }, {
+            label: "Health to",
+            name: "healthField",
+            fields: [{
+              label: "New Value",
+              name: "newValue",
+              fieldType: "text"
+            }]
+          }, {
+            label: "Enemy to",
+            name: "enemyField",
+            fields: [{
+              label: "New Value",
+              name: "newValue",
+              fieldType: "select",
+              options: enemyOptions
+            }]
+          }]
+        }, ]
+      }];
+
+      var value = [{
+        name: "action-select",
+        value: "alert",
+        fields: [{
+          name: "message",
+          value: "You have been ... !"
+        }]
+      }, {
+        name: "action-select",
+        value: "updateField",
+        fields: [{
+          name: "fieldId",
+          value: "enemyField",
+          fields: [{
+            name: "newValue",
+            value: "enemy3"
+          }]
+        }]
+      }];
+
+      var actionsValueEcho1 = document.getElementById('actionsValueEcho1');
+      var afActions1 = document.getElementById('afActions1');
+      afActions1.config = config;
+      afActions1.value = value;
+
+      afActions1.addEventListener('value-changed', function(event) {
+        var jsonValue = JSON.stringify(event.detail);
+        actionsValueEcho1.textContent = jsonValue;
+      });
+
+      var jsonSchema = {
+        "properties": {
+          "id": {
+            "description": "The unique identifier for a product",
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "required": "true",
+            "xinputmode": "required"
+          },
+          "city": {
+            "type": "string",
+            "default": "Default city name"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "activePera": {
+            "type": "boolean",
+            "default": true,
+            "description": "This is description for pera"
+          },
+          "dropdownDemo": {
+            "title": "Drop down demo",
+            "type": "string",
+            "xtype": "enum",
+            "xvaluelist": "XML,JSON",
+            "default": "XML"
+          },
+          "card": {
+            "title": "Card",
+            "type": "string",
+            "xtype": "lookup",
+            "xurl": "http://localhost:2014/Activity/adenin.GateKeeper.Content/card/"
+          }
+        },
+        "required": ["id", "city"]
+      };
+
+      var actionsValueEcho2 = document.getElementById('actionsValueEcho2');
+      var afActions2 = document.getElementById('afActions2');
+      afActions2.schema = jsonSchema;
+
+      afActions2.addEventListener('value-changed', function(event) {
+        var jsonValue = JSON.stringify(event.detail);
+        actionsValueEcho2.textContent = jsonValue;
+      });
+
+
+      var actionsValueEcho3 = document.getElementById('actionsValueEcho3');
+      var afActions3 = document.getElementById('afActions3');
+      afActions3.config = config;
+      afActions3.value = value;
+
+      afActions3.addEventListener('value-changed', function(event) {
+        var jsonValue = JSON.stringify(event.detail);
+        actionsValueEcho3.textContent = jsonValue;
+      });
+    });
+  </script>
+</body>
+
+</html>

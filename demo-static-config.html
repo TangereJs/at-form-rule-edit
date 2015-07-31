@@ -18,7 +18,7 @@
       width: 300px;
       background: #ddd;
     }
-    
+
     #peraForm div {
       margin: 10px 0;
     }
@@ -30,25 +30,25 @@
   <h2>Conditions and Actions Demo - static schema</h2>
 
   <at-form-rule-edit id="peraRules">
-    <form id="peraForm">
-      <h3>Try Changing These Values...</h3>
-      <div>
-        <label>Damage</label>
-        <input type="text" id="damageField" />
-      </div>
-      <div>
-        <label>Health</label>
-        <input type="text" id="healthField" />
-      </div>
-      <div>
-        <label>Enemy</label>
-        <select id="enemyField"></select>
-      </div>
-      <div>
-        <button type="submit" id="perasubmit">Run Conditions and Actions</button>
-      </div>
-    </form>
   </at-form-rule-edit>
+  <form id="peraForm">
+    <h3>Try Changing These Values...</h3>
+    <div>
+      <label>Damage</label>
+      <input type="text" id="damageField" />
+    </div>
+    <div>
+      <label>Health</label>
+      <input type="text" id="healthField" />
+    </div>
+    <div>
+      <label>Enemy</label>
+      <select id="enemyField"></select>
+    </div>
+    <div>
+      <button type="submit" id="perasubmit">Run Conditions and Actions</button>
+    </div>
+  </form>
   <div>
     <h3>Rule value echo:</h3>
     <div id="ruleValueEcho"></div>
@@ -250,15 +250,15 @@
       //      peraRules.conditions = peraConditionsConfig;
       //      peraRules.actions = peraActionsConfig;
       peraRules.ruleConfig = ruleConfig;
-      //      peraRules.ruleValue = ruleData;
+      peraRules.value = ruleData;
 
       peraRules.addEventListener('value-changed', function (event) {
-        var jsonValue = JSON.stringify(event.detail);
+        var jsonValue = JSON.stringify(peraRules.value);
         ruleValueEcho.textContent = jsonValue;
       });
 
       initializePeraForm(peraRules);
-      window.peraRules = peraRules; // make it global, just for testing 
+      window.peraRules = peraRules; // make it global, just for testing
 
       function initializePeraForm(pElement) {
         var enemyField = document.getElementById('enemyField');

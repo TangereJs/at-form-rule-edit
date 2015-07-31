@@ -1,0 +1,558 @@
+<script src="lib/business-rules/actions-builder.js" type="text/javascript"></script>
+
+<dom-module id="at-form-actions">
+  <style>
+    #actionsHtmlContainer {
+      margin: 20px 0;
+    }
+
+    #actionsHtmlContainer > .conditional > .remove {
+      display: none;
+    }
+
+    .action-buttons {
+      margin: 20px 0;
+    }
+
+    .action {
+      margin: 10px 0;
+    }
+
+    .action .subfields,
+    .action .subfields .field {
+      display: inline;
+    }
+
+    .action label {
+      display: none;
+    }
+
+    .action select,
+    .action input,
+    .action textarea {
+      margin-right: 10px;
+    }
+
+    .action textarea,
+    .action input {
+      width: 250px;
+    }
+
+    .action textarea {
+      vertical-align: top;
+      height: 50px;
+    }
+  </style>
+  <template>
+    <h3>Do these actions...</h3>
+    <div id="actionsHtmlContainer"></div>
+  </template>
+  <script>
+    Polymer({
+      is: 'at-form-actions',
+      properties: {
+        config: {
+          type: Object,
+          value: function() {
+            return {};
+          },
+          observer: 'configChanged'
+        },
+        schema: {
+          type: Object,
+          value: function() {
+            return {};
+          },
+          observer: 'schemaChanged'
+        },
+        value: {
+          type: Object,
+          value: function() {
+            return {};
+          },
+          notify: true,
+          observer: 'valueChanged'
+        },
+        disabled: {
+          type: Boolean,
+          value: false,
+          observer: 'disabledChanged'
+        }
+      },
+      _scopeCssViaAttr: true,
+      pr_actionsHtml: undefined,
+      pr_actionsBuilder: undefined,
+      ready: function() {},
+      initBuilder: function() {
+        var self = this;
+        if (!this.pr_actionsBuilder) {
+          this.pr_actionsBuilder = RuleEngineHelpers.actionsBuilder.call(this);
+          this.pr_actionsBuilder.on('update', function(updateEvent) {
+            // this is microevents solution
+            // conditionsBuilder provides for update event
+            // update event is fired when (sub)conditions are added / removed / modified
+            //            self.set('value.actions', self.collectActionsData());
+            self.value = self.collectActionsData();
+            self.fire('value-changed', self.value);
+          });
+        }
+      },
+      configChanged: function(newValue, oldValue) {
+        this.initBuilder();
+        this.pr_actionsBuilder.setActions(newValue);
+        this._rebuildActionsHtml();
+      },
+      valueChanged: function(newValue, oldValue) {
+        this.initBuilder();
+        this.pr_actionsBuilder.setData(newValue);
+        this._rebuildActionsHtml();
+      },
+      _rebuildActionsHtml: function() {
+        this.removeAllChildren(this.$.actionsHtmlContainer);
+        this.pr_actionsHtml = this.pr_actionsBuilder.buildActionsHtml();
+        Polymer.dom(this.$.actionsHtmlContainer).appendChild(this.pr_actionsHtml);
+        this.disabledChanged(this.disabled, this.disabled);
+      },
+      schemaChanged: function(newValue, oldValue) {
+        if (newValue.properties) {
+          var t_config = this.JSONSchemaToActionsConfig(newValue, this.defaultActions);
+          this.config = t_config.fields;
+          this.value = t_config.data;
+        }
+      },
+      collectActionsData: function() {
+        var actionsData = this.pr_actionsBuilder.collectData(undefined, this.pr_actionsHtml);
+        return actionsData;
+      },
+      disabledChanged: function(newValue, oldValue) {
+        var
+          selectIndex,
+          selectElement,
+          selectElements = [],
+          inputIndex,
+          inputElement,
+          inputElements = [],
+          aIndex,
+          aElement,
+          aElements = [],
+          textAreaIndex,
+          textAreaElement,
+          textAreaElements = [],
+          tmp;
+
+        if (this.pr_actionsHtml) {
+          tmp = this.pr_actionsHtml.querySelectorAll('select');
+          if (tmp.length > 0) {
+            this.pushArray1IntoArray2(tmp, selectElements);
+          }
+          tmp = this.pr_actionsHtml.querySelectorAll('input');
+          if (tmp.length > 0) {
+            this.pushArray1IntoArray2(tmp, inputElements);
+          }
+          tmp = this.pr_actionsHtml.querySelectorAll('button');
+          if (tmp.length > 0) {
+            this.pushArray1IntoArray2(tmp, aElements);
+          }
+          tmp = this.pr_actionsHtml.querySelectorAll('textarea');
+          if (tmp.length > 0) {
+            this.pushArray1IntoArray2(tmp, textAreaElements);
+          }
+        }
+
+        if (newValue) {
+          for (selectIndex = 0; selectIndex < selectElements.length; selectIndex += 1) {
+            selectElement = selectElements[selectIndex];
+            selectElement.setAttribute('disabled', 'disabled');
+          }
+          for (inputIndex = 0; inputIndex < inputElements.length; inputIndex += 1) {
+            inputElement = inputElements[inputIndex];
+            inputElement.setAttribute('disabled', 'disabled');
+          }
+          for (aIndex = 0; aIndex < aElements.length; aIndex += 1) {
+            aElement = aElements[aIndex];
+            aElement.setAttribute('disabled', 'disabled');
+          }
+          for (textAreaIndex = 0; textAreaIndex < textAreaElements.length; textAreaIndex += 1) {
+            textAreaElement = textAreaElements[textAreaIndex];
+            textAreaElement.setAttribute('disabled', 'disabled');
+          }
+        } else {
+          for (selectIndex = 0; selectIndex < selectElements.length; selectIndex += 1) {
+            selectElement = selectElements[selectIndex];
+            selectElement.removeAttribute('disabled');
+          }
+          for (inputIndex = 0; inputIndex < inputElements.length; inputIndex += 1) {
+            inputElement = inputElements[inputIndex];
+            inputElement.removeAttribute('disabled');
+          }
+          for (aIndex = 0; aIndex < aElements.length; aIndex += 1) {
+            aElement = aElements[aIndex];
+            aElement.removeAttribute('disabled');
+          }
+          for (textAreaIndex = 0; textAreaIndex < textAreaElements.length; textAreaIndex += 1) {
+            textAreaElement = textAreaElements[textAreaIndex];
+            textAreaElement.removeAttribute('disabled');
+          }
+        }
+      },
+
+      removeAllChildren: function(parentElement) {
+        for (var i = 0; i < Polymer.dom(parentElement).childNodes.length; i += 1) {
+          Polymer.dom(parentElement).removeChild(Polymer.dom(parentElement).childNodes[i]);
+        }
+      },
+
+      JSONSchemaToActionsConfig: function(conditionsConfig, defaultActions) {
+        var stateOptions = [{
+          label: "Optional",
+          name: "optional"
+        }, {
+          label: "Required",
+          name: "required"
+        }, {
+          label: "Hidden",
+          name: "hidden"
+        }, {
+          label: "Disabled",
+          name: "disabled"
+        }];
+        var result = {
+          fields: [],
+          data: []
+        };
+
+        var showAlertField = {
+          label: "Show Alert",
+          name: "alert",
+          fields: [{
+            label: "Message",
+            name: "message",
+            fieldType: "textarea"
+          }]
+        };
+
+        var updateField = {
+          label: "Update Field",
+          name: "updateField",
+          fields: [{
+            label: "Field",
+            name: "fieldId",
+            fieldType: "select",
+            options: []
+          }]
+        };
+
+        var setFieldStateField = {
+          label: "Set Field State",
+          name: "setFieldState",
+          fields: [{
+            label: "Field",
+            name: "fieldId",
+            fieldType: "select",
+            options: []
+          }]
+        };
+
+        var copyFieldValueField = {
+          label: "Copy Field Value",
+          name: "copyFieldValue",
+          fields: [{
+            label: "Field",
+            name: "fieldId",
+            fieldType: "select",
+            options: []
+          }]
+        };
+
+        result.fields.push(showAlertField);
+        result.fields.push(updateField);
+        result.fields.push(setFieldStateField);
+        result.fields.push(copyFieldValueField);
+        if (defaultActions) {
+          result.data.push({
+            name: "action-select",
+            value: "alert",
+            fields: [{
+              name: "message",
+              value: "Hello world!"
+            }]
+          });
+        }
+
+        var
+          condition,
+          value,
+          properties = conditionsConfig.properties;
+
+        for (condition in properties) {
+          var condConf = properties[condition];
+          var updateFieldOption = {};
+          var setFieldStateOption = {};
+
+          switch (condConf.type) {
+            case "string":
+            case "number":
+              if (properties[condition].xtype === "enum" && properties[condition].xvaluelist !== undefined) {
+                var updateFieldOptions = [];
+                var valueList = properties[condition].xvaluelist.split(',');
+                for (value in valueList) {
+                  var trimValue = valueList[value].trim();
+                  updateFieldOptions.push({
+                    name: trimValue,
+                    label: trimValue
+                  });
+                }
+                updateFieldOption = {
+                  label: this.capitalize(condition + " to"),
+                  name: condition + "Field",
+                  fields: [{
+                    label: "New Value",
+                    name: "newValue",
+                    fieldType: "select",
+                    options: updateFieldOptions
+                  }]
+                };
+              } else {
+                updateFieldOption = {
+                  label: this.capitalize(condition + " to"),
+                  name: condition + "Field",
+                  fields: [{
+                    label: "New Value",
+                    name: "newValue",
+                    fieldType: "text"
+                  }]
+                };
+              }
+
+              setFieldStateOption = {
+                label: this.capitalize(condition),
+                name: condition + "Field",
+                fields: [{
+                  label: "New state",
+                  name: "newState",
+                  fieldType: "select",
+                  options: stateOptions
+                }]
+              };
+              if (defaultActions) {
+                result.data.push({
+                  name: "action-select",
+                  value: "updateField",
+                  fields: [{
+                    name: "fieldId",
+                    value: condition + "Field",
+                    fields: [{
+                      name: "newValue",
+                      value: ''
+                    }]
+                  }]
+                });
+              }
+              break;
+            case "bool":
+            case "boolean":
+              var booleanOptions = [{
+                name: "true",
+                label: "true"
+              }, {
+                name: "false",
+                label: "false"
+              }];
+              updateFieldOption = {
+                label: this.capitalize(condition + " to"),
+                name: condition + "Field",
+                fields: [{
+                  label: "New Value",
+                  name: "newValue",
+                  fieldType: "select",
+                  options: booleanOptions
+                }]
+              };
+              setFieldStateOption = {
+                label: this.capitalize(condition),
+                name: condition + "Field",
+                fields: [{
+                  label: "New state",
+                  name: "newState",
+                  fieldType: "select",
+                  options: stateOptions
+                }]
+              };
+              if (defaultActions) {
+                result.data.push({
+                  name: "action-select",
+                  value: "updateField",
+                  fields: [{
+                    name: "fieldId",
+                    value: condition + "Field",
+                    fields: [{
+                      name: "newValue",
+                      value: booleanOptions[0].name
+                    }]
+                  }]
+                });
+              }
+              break;
+            case "enum":
+              var condConfOptions;
+              if (condConf.options) {
+                condConfOptions = condConf.options
+              } else if (condConf.xvaluelist) {
+                condConfOptions = [];
+                var valueListItems = condConf.xvaluelist.split(',');
+                for (var vlItemsIndex = 0; vlItemsIndex < valueListItems.length; vlItemsIndex += 1) {
+                  var trimmedValue = valueListItems[vlItemsIndex].trim();
+                  var ccOption = {
+                    label: trimmedValue,
+                    name: trimmedValue
+                  };
+                  condConfOptions.push(ccOption);
+                }
+              }
+
+              updateFieldOption = {
+                label: capitalize(condition + " to"),
+                name: condition + "Field",
+                fields: [{
+                  label: "New Value",
+                  name: "newValue",
+                  fieldType: "select",
+                  options: condConfOptions
+                }]
+              };
+              setFieldStateOption = {
+                label: capitalize(condition),
+                name: condition + "Field",
+                fields: [{
+                  label: "New state",
+                  name: "newState",
+                  fieldType: "select",
+                  options: stateOptions
+                }]
+              };
+              if (defaultActions) {
+                result.data.push({
+                  name: "action-select",
+                  value: "updateField",
+                  fields: [{
+                    name: "fieldId",
+                    value: condition + "Field",
+                    fields: [{
+                      name: "newValue",
+                      value: condConf.options[1].name
+                    }]
+                  }]
+                });
+              }
+              break;
+          }
+
+          var copyFieldValueFieldOption = this.getCopyValueFieldOptionsFor(condition, properties);
+          if (copyFieldValueFieldOption.fields[0].options.length > 0) {
+            copyFieldValueField.fields[0].options.push(copyFieldValueFieldOption);
+          }
+
+          updateField.fields[0].options.push(updateFieldOption);
+          setFieldStateField.fields[0].options.push(setFieldStateOption);
+        }
+        return result;
+      },
+
+      capitalize: function(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+      },
+
+      getCopyValueFieldOptionsFor: function(condition, properties) {
+        var result = {
+          label: this.capitalize(condition + " to"),
+          name: condition + "Field",
+          fields: [{
+            label: "New Value",
+            name: "newValue",
+            fieldType: "select",
+            options: []
+          }]
+        };
+        var fieldsToAdd = [];
+
+        var
+          property,
+          condConf = properties[condition];
+
+        for (property in properties) {
+          if (condition !== property) { // if names are different
+            var propertyConf = properties[property];
+            var isTarget = this.isCopyTarget(condConf, propertyConf);
+            if (isTarget) {
+              fieldsToAdd.push({
+                label: property,
+                name: property + "Field"
+              });
+            }
+          }
+        }
+
+        result.fields[0].options = fieldsToAdd;
+        return result;
+      },
+
+      /**
+       * Determines whether targetConf can be a copy target for condConf
+       * @return true if it can, false otherwise
+       */
+      isCopyTarget: function(condConf, targetConf) {
+
+        if (condConf.type !== targetConf.type) {
+          // if both have different type they are not compatible
+          return false;
+        }
+
+        if (condConf.xtype === undefined && targetConf.xtype === undefined) {
+          // if both are of the same type and do not have xtype and they are compatible
+          return true;
+        }
+
+        if ((condConf.xtype === undefined && targetConf.xtype !== undefined) || (condConf.xtype !== undefined && targetConf.xtype === undefined)) {
+          // if both have same type but one has xtype and other doesn't they are not compatible
+          return false;
+        }
+
+        if (condConf.xtype !== targetConf.xtype) {
+          // if both have same type but different xtypes they are not compatible
+          return false;
+        }
+
+        // at this point both have the same type and same xtype
+
+        if (condConf.xtype === 'enum') {
+          // compare xvaluelists
+          if (condConf.xvaluelist === undefined || targetConf.xvaluelist === undefined || condConf.xvaluelist !== targetConf.xvaluelist) {
+            // if any of the two doesn't have xvaluelist or xvaluelists are different they are not compatible
+            return false;
+          }
+        } else if (condConf.xtype === 'lookup') {
+          if (condConf.xurl === undefined || targetConf.xurl === undefined || condConf.xurl !== targetConf.xurl) {
+            // if any of the two doesn't have xurl or xurls are different they are not compatible
+            return false;
+          }
+        } else {
+          // xtype is not recognized; return false
+          return false;
+        }
+
+        // source and target are compatible; return true
+        return true;
+      },
+
+      pushArray1IntoArray2: function(array1, array2) {
+        var
+          arr1Index;
+
+        for (arr1Index = 0; arr1Index < array1.length; arr1Index += 1) {
+          array2.push(array1[arr1Index]);
+        }
+      }
+
+    });
+  </script>
+</dom-module>
