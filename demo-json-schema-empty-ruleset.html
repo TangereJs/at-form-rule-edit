@@ -97,19 +97,21 @@
         var submit = document.getElementById('submit');
         submit.addEventListener('click', function (e) {
           e.preventDefault();
-          var lConditions = ruleEdit.collectConditionsData();
-          var lActions = ruleEdit.collectActionsData();
+          var lConditions = ruleEdit.value.conditions;
+          var lActions = ruleEdit.value.actions;
           var engine = new RuleEngine({
             conditions: lConditions,
             actions: lActions
           });
 
           // conditions adapter is pairs of "property + 'Field'": demoForm.data[property]
+          var conditionsAdapter = demoForm.data;
+          /*
           var conditionsAdapter = {};
           for (property in schema.properties) {
             conditionsAdapter[property + 'Field'] = demoForm.data[property];
           }
-
+          */
           var actionsAdapter = {
             alert: function (data) {
               alert(data.find("message"));
@@ -126,7 +128,8 @@
               if (val === "false") {
                 val = false;
               }
-              demoForm.data[fieldId] = val;
+              //demoForm.data[fieldId] = val;
+              demoForm.updateFormElementData(fieldId, val);
             }
           };
           engine.run(conditionsAdapter, actionsAdapter);
