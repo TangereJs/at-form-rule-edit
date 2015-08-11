@@ -82,6 +82,7 @@
       _scopeCssViaAttr: true,
       pr_actionsHtml: undefined,
       pr_actionsBuilder: undefined,
+      _isInternalUpdate: false,
       ready: function() {},
       initBuilder: function() {
         var self = this;
@@ -92,8 +93,9 @@
             // conditionsBuilder provides for update event
             // update event is fired when (sub)conditions are added / removed / modified
             //            self.set('value.actions', self.collectActionsData());
+            this._isInternalUpdate = true;
             self.value = self.collectActionsData();
-            self.fire('value-changed', self.value);
+            //self.fire('value-changed', self.value);
           });
         }
       },
@@ -103,6 +105,9 @@
         this._rebuildActionsHtml();
       },
       valueChanged: function(newValue, oldValue) {
+        if (this._isInternalUpdate) {
+          this._isInternalUpdate = false;
+          return; }
         this.initBuilder();
         this.pr_actionsBuilder.setData(newValue);
         this._rebuildActionsHtml();
@@ -112,6 +117,8 @@
         this.pr_actionsHtml = this.pr_actionsBuilder.buildActionsHtml();
         Polymer.dom(this.$.actionsHtmlContainer).appendChild(this.pr_actionsHtml);
         this.disabledChanged(this.disabled, this.disabled);
+        this._isInternalUpdate = true;
+        this.value = this.collectActionsData();
       },
       schemaChanged: function(newValue, oldValue) {
         if (newValue.properties) {

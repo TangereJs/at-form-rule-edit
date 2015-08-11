@@ -93,6 +93,7 @@
       _scopeCssViaAttr: true,
       pr_conditionsBuilder: undefined,
       pr_conditionsHtml: undefined,
+      _isInternalUpdate: false,
       ready: function() {
 
       },
@@ -106,13 +107,14 @@
             // update event is fired when (sub)conditions are added / removed / modified
             // self.set('value.conditions', self.collectConditionsData());
             var tmpValue = self.collectConditionsData();
-            // *ij* this is needed to break the infinite loop
-            // i do not know (yet!) why infinite loop is present in the first place
-            // but code is needed for it to be broken
-            //if (!(JSON.stringify(tmpValue) === JSON.stringify(self.value))){
-              self.value = tmpValue;
-            //}
-            self.fire('value-changed', self.value);
+
+            // this flag is needed to break the infinite loop
+            // when internal values of the conditions change value just needs to be set
+            // there is no need to recreate the html again
+            self._isInternalUpdate = true;
+            self.value = tmpValue;
+
+            //self.fire('value-changed', self.value);
           });
         }
       },
@@ -133,6 +135,13 @@
         this._rebuildConditionsHtml();
       },
       valueChanged: function(newValue, oldValue) {
+        if (this._isInternalUpdate) {
+          // this flag is needed to break the infinite loop
+          // when internal values of the conditions change value just needs to be set
+          // there is no need to recreate the html again
+          this._isInternalUpdate = false;
+          return;
+        }
         this.initBuilder();
         this.pr_conditionsBuilder.setData(newValue);
         this._rebuildConditionsHtml();
@@ -142,6 +151,9 @@
         this.pr_conditionsHtml = this.pr_conditionsBuilder.buildConditionsHtml();
         Polymer.dom(this.$.conditionsHtmlContainer).appendChild(this.pr_conditionsHtml);
         this.disabledChanged(this.disabled, this.disabled);
+        //this._isInternalUpdate = true;
+        //var tmpValue = this.collectConditionsData();
+        //this.value = tmpValue;
       },
       disabledChanged: function(newValue, oldValue) {
         var

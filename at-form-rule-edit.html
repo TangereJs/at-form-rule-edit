@@ -92,8 +92,10 @@
     // this function checks provided conditions and actions against a at-core-form
     checkAgainst: function(coreForm, customActionsAdapter) {
 
-      var lConditions = ruleEdit.collectConditionsData();
-      var lActions = ruleEdit.collectActionsData();
+      //var lConditions = ruleEdit.collectConditionsData();
+      //var lActions = ruleEdit.collectActionsData();
+      var lConditions = this.value.conditions;
+      var lActions = this.value.actions;
       var engine = new RuleEngine({
         conditions: lConditions,
         actions: lActions
