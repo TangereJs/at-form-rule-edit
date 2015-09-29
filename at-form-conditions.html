@@ -2,7 +2,7 @@
 
 <dom-module id="at-form-conditions">
   <style>
-    #conditionsHtmlContainer,
+    #conditionsHtmlContainer
     {
       margin: 20px 0;
     }
@@ -478,7 +478,7 @@
       getCopyValueFieldOptionsFor: function(condition, properties) {
         var result = {
           label: this.capitalize(condition + " to"),
-          name: condition + "Field",
+          name: condition,// + "Field",
           fields: [{
             label: "New Value",
             name: "newValue",
@@ -499,7 +499,7 @@
             if (isTarget) {
               fieldsToAdd.push({
                 label: property,
-                name: property + "Field"
+                name: property, // + "Field"
               });
             }
           }
