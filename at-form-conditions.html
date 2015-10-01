@@ -2,8 +2,7 @@
 
 <dom-module id="at-form-conditions">
   <style>
-    #conditionsHtmlContainer
-    {
+    #conditionsHtmlContainer {
       margin: 20px 0;
     }
 
@@ -57,6 +56,9 @@
   </template>
   <script>
     'use strict';
+    // ----------------------------------------
+    // at-form-conditions definition
+    // ----------------------------------------
     Polymer({
       is: 'at-form-conditions',
       properties: {
@@ -119,10 +121,10 @@
         }
       },
       schemaChanged: function(newValue, oldValue) {
-        if (newValue.properties) {
-          var t_config = this.JSONSchemaToConditionsConfig(newValue, this.defaultConditions);
-          this.config = t_config.fields;
-          this.value = t_config.data;
+        if (this.__conditionsHelperFunctions.isSchemaValid(newValue)) {
+          var t_config = this.__conditionsHelperFunctions.schemaToConfig(newValue);
+          this.config = t_config.value.fields;
+          this.value = t_config.value.data;
         }
       },
       collectConditionsData: function() {
@@ -212,351 +214,6 @@
         }
       },
 
-      capitalize: function(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-      },
-
-      JSONSchemaToConditionsConfig: function(schema, defaultConditions) {
-        var result = {
-          fields: [],
-          data: {
-            "all": []
-          }
-        };
-
-        var
-          entry,
-          properties = schema.properties;
-
-        for (entry in properties) {
-          var entryType = properties[entry].type;
-          var defaultValue = properties[entry].default !== undefined ? properties[entry].default : '';
-
-          var newField = {
-            label: this.capitalize(entry),
-            //          name: entry + 'Field',
-            name: entry,
-            operators: []
-          };
-          if (properties[entry].options !== undefined) {
-            newField.options = properties[entry].options;
-          }
-          result.fields.push(newField);
-          switch (entryType) {
-            case "string":
-              newField.operators = [{
-                label: "is present",
-                name: "present",
-                fieldType: "none"
-              }, {
-                label: "is blank",
-                name: "blank",
-                fieldType: "none"
-              }, {
-                label: "is equal to",
-                name: "equalTo",
-                fieldType: "text"
-              }, {
-                label: "is not equal to",
-                name: "notEqualTo",
-                fieldType: "text"
-              }, {
-                label: "includes",
-                name: "includes",
-                fieldType: "text"
-              }, {
-                label: "matches regex",
-                name: "matchesRegex",
-                fieldType: "text"
-              }, {
-                label: "is less than",
-                name: "lessThan",
-                fieldType: "text"
-              }, {
-                label: "is less than or equal to",
-                name: "lessThanEqual",
-                fieldType: "text"
-              }, {
-                label: "is greater than",
-                name: "greaterThan",
-                fieldType: "text"
-              }, {
-                label: "is greater than or equal to",
-                name: "greaterThanEqual",
-                fieldType: "text"
-              }];
-              var value;
-              if (properties[entry].xtype === "enum" && properties[entry].xvaluelist !== undefined) {
-                newField.operators[2].fieldType = "select";
-                newField.operators[3].fieldType = "select";
-
-                newField.options = [];
-                var valueList = properties[entry].xvaluelist.split(',');
-                for (value in valueList) {
-                  var trimValue = valueList[value].trim();
-                  newField.options.push({
-                    name: trimValue,
-                    label: trimValue
-                  });
-                }
-              }
-
-              var compareOptions = this.getCopyValueFieldOptionsFor(entry, properties);
-              if (compareOptions.fields[0].options.length > 0) {
-                newField.operators[2].fieldType = "select";
-                newField.operators[3].fieldType = "select";
-
-                if (newField.options !== undefined) {
-                  newField.options = [{
-                    name: "static",
-                    label: "Static",
-                    fieldType: "select",
-                    options: newField.options
-                  }, {
-                    name: "field",
-                    label: "Field",
-                    fieldType: "select",
-                    options: []
-                  }];
-                } else {
-                  newField.options = [{
-                    name: "static",
-                    label: "Static",
-                    fieldType: "text"
-                  }, {
-                    name: "field",
-                    label: "Field",
-                    fieldType: "select",
-                    options: []
-                  }];
-                }
-
-                newField.options[1].options = compareOptions.fields[0].options;
-              }
-              break;
-            case "number":
-              newField.operators = [{
-                label: "is present",
-                name: "present",
-                fieldType: "none"
-              }, {
-                label: "is blank",
-                name: "blank",
-                fieldType: "none"
-              }, {
-                label: "is equal to",
-                name: "equalTo",
-                fieldType: "text"
-              }, {
-                label: "is not equal to",
-                name: "notEqualTo",
-                fieldType: "text"
-              }, {
-                label: "is greater than",
-                name: "greaterThan",
-                fieldType: "text"
-              }, {
-                label: "is greater than or equal to",
-                name: "greaterThanEqual",
-                fieldType: "text"
-              }, {
-                label: "is less than",
-                name: "lessThan",
-                fieldType: "text"
-              }, {
-                label: "is less than or equal to",
-                name: "lessThanEqual",
-                fieldType: "text"
-              }];
-
-              newField.options = [{
-                name: "static",
-                label: "Static",
-                fieldType: "text"
-              }, {
-                name: "field",
-                label: "Field",
-                fieldType: "select",
-                options: []
-              }];
-
-              var compareOptions = this.getCopyValueFieldOptionsFor(entry, properties);
-              if (compareOptions.fields.length > 0) {
-                newField.options[1].options = compareOptions.fields[0].options;
-              }
-              break;
-            case "boolean":
-              newField.operators = [{
-                label: "is blank",
-                name: "blank",
-                fieldType: "none"
-              }, {
-                label: "is equal to",
-                name: "equalTo",
-                fieldType: "select"
-              }, {
-                label: "is not equal to",
-                name: "notEqualTo",
-                fieldType: "select"
-              }];
-              newField.options = [{
-                name: "static",
-                label: "Static",
-                fieldType: "select",
-                options: [{
-                  name: "true",
-                  label: "true"
-                }, {
-                  name: "false",
-                  label: "false"
-                }]
-              }, {
-                name: "field",
-                label: "Field",
-                fieldType: "select",
-                options: []
-              }];
-
-              var compareOptions = this.getCopyValueFieldOptionsFor(entry, properties);
-              if (compareOptions.fields.length > 0) {
-                newField.options[1].options = compareOptions.fields[0].options;
-              }
-              break;
-            case "enum":
-              newField.operators = [{
-                label: "is present",
-                name: "present",
-                fieldType: "none"
-              }, {
-                label: "is blank",
-                name: "blank",
-                fieldType: "none"
-              }, {
-                label: "is equal to",
-                name: "equalTo",
-                fieldType: "text"
-              }, {
-                label: "is not equal to",
-                name: "notEqualTo",
-                fieldType: "text"
-              }];
-
-              var compareOptions = this.getCopyValueFieldOptionsFor(entry, properties);
-              if (compareOptions.fields[0].options.length > 0) {
-                newField.operators[2].fieldType = "select";
-
-                newField.options = [{
-                  name: "static",
-                  label: "Static",
-                  fieldType: "text"
-                }, {
-                  name: "field",
-                  label: "Field",
-                  fieldType: "select",
-                  options: []
-                }];
-
-                newField.options[1].options = compareOptions.fields[0].options;
-              }
-              break;
-          }
-          var defaultOperator = newField.operators[0].name;
-          if (properties[entry].defaultOperator !== undefined) {
-            defaultOperator = properties[entry].defaultOperator;
-          }
-          if (defaultConditions) {
-            result.data.all.push({
-              name: newField.name,
-              operator: defaultOperator,
-              value: defaultValue
-            });
-          }
-        }
-        return result;
-      },
-
-      getCopyValueFieldOptionsFor: function(condition, properties) {
-        var result = {
-          label: this.capitalize(condition + " to"),
-          name: condition,// + "Field",
-          fields: [{
-            label: "New Value",
-            name: "newValue",
-            fieldType: "select",
-            options: []
-          }]
-        };
-        var fieldsToAdd = [];
-
-        var
-          property,
-          condConf = properties[condition];
-
-        for (property in properties) {
-          if (condition !== property) { // if names are different
-            var propertyConf = properties[property];
-            var isTarget = this.isCopyTarget(condConf, propertyConf);
-            if (isTarget) {
-              fieldsToAdd.push({
-                label: property,
-                name: property, // + "Field"
-              });
-            }
-          }
-        }
-
-        result.fields[0].options = fieldsToAdd;
-        return result;
-      },
-
-      /**
-       * Determines whether targetConf can be a copy target for condConf
-       * @return true if it can, false otherwise
-       */
-      isCopyTarget: function(condConf, targetConf) {
-
-        if (condConf.type !== targetConf.type) {
-          // if both have different type they are not compatible
-          return false;
-        }
-
-        if (condConf.xtype === undefined && targetConf.xtype === undefined) {
-          // if both are of the same type and do not have xtype and they are compatible
-          return true;
-        }
-
-        if ((condConf.xtype === undefined && targetConf.xtype !== undefined) || (condConf.xtype !== undefined && targetConf.xtype === undefined)) {
-          // if both have same type but one has xtype and other doesn't they are not compatible
-          return false;
-        }
-
-        if (condConf.xtype !== targetConf.xtype) {
-          // if both have same type but different xtypes they are not compatible
-          return false;
-        }
-
-        // at this point both have the same type and same xtype
-
-        if (condConf.xtype === 'enum') {
-          // compare xvaluelists
-          if (condConf.xvaluelist === undefined || targetConf.xvaluelist === undefined || condConf.xvaluelist !== targetConf.xvaluelist) {
-            // if any of the two doesn't have xvaluelist or xvaluelists are different they are not compatible
-            return false;
-          }
-        } else if (condConf.xtype === 'lookup') {
-          if (condConf.xurl === undefined || targetConf.xurl === undefined || condConf.xurl !== targetConf.xurl) {
-            // if any of the two doesn't have xurl or xurls are different they are not compatible
-            return false;
-          }
-        } else {
-          // xtype is not recognized; return false
-          return false;
-        }
-
-        // source and target are compatible; return true
-        return true;
-      },
-
       removeAllChildren: function(parentElement) {
         for (var i = 0; i < Polymer.dom(parentElement).childNodes.length; i += 1) {
           Polymer.dom(parentElement).removeChild(Polymer.dom(parentElement).childNodes[i]);
@@ -571,58 +228,357 @@
           array2.push(array1[arr1Index]);
         }
       },
-      // because for some reason objects are not the same i need this deep compare function
-      isEqualTo: function(o, p) {
-        var i,
-          keysO = Object.keys(o).sort(),
-          keysP = Object.keys(p).sort();
-        if (keysO.length !== keysP.length) {
-          return false; //not the same nr of keys
-        }
-        if (keysO.join('') !== keysP.join('')) {
-          return false; //different keys
-        }
-        for (i = 0; i < keysO.length; ++i) {
-          if (o[keysO[i]] instanceof Array) {
-            if (!(p[keysO[i]] instanceof Array)) {
-              return false;
+
+      // ----------------------------------------
+      // at-form-conditions helper functions
+      // ----------------------------------------
+      __conditionsHelperFunctions: {
+        // ----------------------------------------
+        // validates the schema object
+        // schema object must contain property 'properties'
+        // ----------------------------------------
+        isSchemaValid: function(schema) {
+          var
+            result = false;
+
+          result = schema.hasOwnProperty('properties');
+
+          return result;
+        },
+        // ----------------------------------------
+        // converts schema to config and data
+        // schema object must contain property 'properties'
+        // ----------------------------------------
+        schemaToConfig: function(schema) {
+          var result = {
+              value: {
+                fields: [],
+                data: {
+                  "all": {}
+                }
+              },
+              hasErrors: false,
+              errors: []
+            },
+            properties = schema.properties,
+            propName, // property name
+            propDef, // property definition
+            propLabel, // property title
+            propType, // property type
+            field, // a new field to be added to result.value.fields
+            hasCompareTargets, // bool that tells that current property has compare targets
+            compareTargets, // for a given field holds other fields whose value can be compared to the given field's value
+            indexOfDash // for xtype="code-*"
+          ;
+
+          // we want to iterate over all properties of schema.properties
+          for (propName in properties) {
+            propDef = properties[propName];
+            propLabel = this.getPropertyLabel(propName, propDef);
+
+            field = {
+              label: propLabel,
+              name: propName,
+              operators: [],
+              options: []
             }
-            //if (compareObjects(o[keysO[i]], p[keysO[i]] === false) return false
-            //would work, too, and perhaps is a better fit, still, this is easy, too
-            if (p[keysO[i]].sort().join('') !== o[keysO[i]].sort().join('')) {
-              return false;
+
+            result.value.fields.push(field);
+
+            // *ij* if its needed to compare fields value against a predefined list of values
+            //  propDef needs to have an additional property that will provide the list of values
+
+            propType = this.getPropertyType(propDef);
+            compareTargets = this.getCompareTargets(propName, properties);
+            hasCompareTargets = compareTargets.length > 0;
+
+            switch (propType) {
+              case "string":
+                field.operators.push(this.createOperatorDef("is present", "present", "none"));
+                field.operators.push(this.createOperatorDef("is blank", "blank", "none"));
+                field.operators.push(this.createOperatorDef("includes", "inclues", "text"));
+                field.operators.push(this.createOperatorDef("matches regex", "matchesRegex", "text"));
+
+                if (hasCompareTargets) {
+                  field.operators.push(this.createOperatorDef("is equal to", "equalTo", "select"));
+                  field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "select"));
+                  field.operators.push(this.createOperatorDef("is less than", "lessThan", "select"));
+                  field.operators.push(this.createOperatorDef("is less than or equal to", "lessThanEqual", "select"));
+                  field.operators.push(this.createOperatorDef("is greater than", "greaterThan", "select"));
+                  field.operators.push(this.createOperatorDef("is greater than or equal to", "greaterThanEqual", "select"));
+
+                  field.options.push(this.createFieldOption("Static", "static", undefined, "text"));
+                  field.options.push(this.createFieldOption("Field", "field", compareTargets, "select"));
+                } else {
+                  field.operators.push(this.createOperatorDef("is equal to", "equalTo", "text"));
+                  field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "text"));
+                  field.operators.push(this.createOperatorDef("is less than", "lessThan", "text"));
+                  field.operators.push(this.createOperatorDef("is less than or equal to", "lessThanEqual", "text"));
+                  field.operators.push(this.createOperatorDef("is greater than", "greaterThan", "text"));
+                  field.operators.push(this.createOperatorDef("is greater than or equal to", "greaterThanEqual", "text"));
+                }
+                break;
+              case "number":
+                field.operators.push(this.createOperatorDef("is present", "present", "none"));
+                field.operators.push(this.createOperatorDef("is blank", "blank", "none"));
+
+                if (hasCompareTargets) {
+                  field.operators.push(this.createOperatorDef("is equal to", "equalTo", "select"));
+                  field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "select"));
+                  field.operators.push(this.createOperatorDef("is less than", "lessThan", "select"));
+                  field.operators.push(this.createOperatorDef("is less than or equal to", "lessThanEqual", "select"));
+                  field.operators.push(this.createOperatorDef("is greater than", "greaterThan", "select"));
+                  field.operators.push(this.createOperatorDef("is greater than or equal to", "greaterThanEqual", "select"));
+
+                  field.options.push(this.createFieldOption("Static", "static", undefined, "text"));
+                  field.options.push(this.createFieldOption("Field", "field", compareTargets, "select"));
+                } else {
+                  field.operators.push(this.createOperatorDef("is equal to", "equalTo", "text"));
+                  field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "text"));
+                  field.operators.push(this.createOperatorDef("is less than", "lessThan", "text"));
+                  field.operators.push(this.createOperatorDef("is less than or equal to", "lessThanEqual", "text"));
+                  field.operators.push(this.createOperatorDef("is greater than", "greaterThan", "text"));
+                  field.operators.push(this.createOperatorDef("is greater than or equal to", "greaterThanEqual", "text"));
+                }
+                break;
+              case "boolean":
+                field.operators.push(this.createOperatorDef("is equal to", "equalTo", "select"));
+                field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "select"));
+                var trueFalseOptionsArray = [{
+                  name: "true",
+                  label: "true"
+                }, {
+                  name: "false",
+                  label: "false"
+                }];
+
+                field.options.push(this.createFieldOption("Static", "static", trueFalseOptionsArray, "select"));
+                if (hasCompareTargets) {
+                  field.options.push(this.createFieldOption("Field", "field", compareTargets, "select"));
+                }
+                break;
+              case "enum":
+                field.operators.push(this.createOperatorDef("is present", "present", "none"));
+                field.operators.push(this.createOperatorDef("is blank", "blank", "none"));
+
+                var
+                  enumOptions = this.getEnumOptions(propDef),
+                  hasEnumOptions = enumOptions.length > 0;
+
+                if (hasCompareTargets || hasEnumOptions) {
+                  field.operators.push(this.createOperatorDef("is equal to", "equalTo", "select"));
+                  field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "select"));
+                } else {
+                  field.operators.push(this.createOperatorDef("is equal to", "equalTo", "text"));
+                  field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "text"));
+                }
+
+                if (hasEnumOptions) {
+                  field.options.push(this.createFieldOption("Static", "static", enumOptions, "select"));
+                } else {
+                  field.options.push(this.createFieldOption("Static", "static", undefined, "text"));
+                }
+                if (hasCompareTargets) {
+                  field.options.push(this.createFieldOption("Field", "field", compareTargets, "select"));
+                }
+
+                break;
             }
-          } else if (o[keysO[i]] instanceof Date) {
-            if (!(p[keysO[i]] instanceof Date)) {
-              return false;
+            // end switch (propType)
+
+          }
+
+          return result;
+        },
+        // ----------------------------------------
+        // calculates what is the label for the property
+        // ----------------------------------------
+        getPropertyLabel: function(propName, propDef) {
+          var result = this.capitalize(propName);
+
+          if (propDef.hasOwnProperty('title') && propDef.title !== '') {
+            result = propDef.title;
+          } else if (propDef.hasOwnProperty('description' && propDef.description !== '')) {
+            result = propDef.description;
+          }
+
+          return result;
+        },
+        // ----------------------------------------
+        // calculates what is property's type
+        // ----------------------------------------
+        getPropertyType: function(propDef) {
+          var result = propDef.type;
+
+          if (result === "string" && propDef.hasOwnProperty('xtype') && propDef.xtype !== "") {
+            result = propDef.xtype;
+            if (result.indexOf('-') != -1) {
+              indexOfDash = type.indexOf('-');
+              result = type.slice(0, indexOfDash);
             }
-            if (('' + o[keysO[i]]) !== ('' + p[keysO[i]])) {
-              return false;
-            }
-          } else if (o[keysO[i]] instanceof Function) {
-            if (!(p[keysO[i]] instanceof Function)) {
-              return false;
-            }
-            //ignore functions, or check them regardless?
-          } else if (o[keysO[i]] instanceof Object) {
-            if (!(p[keysO[i]] instanceof Object)) {
-              return false;
-            }
-            if (o[keysO[i]] === o) { //self reference?
-              if (p[keysO[i]] !== p) {
-                return false;
+          }
+
+          if (result === "string" && (!propDef.hasOwnProperty('xtype') || propDef.xtype === '') && propDef.hasOwnProperty('enum') && this.isArray(propDef.enum)) {
+            result = "enum";
+          }
+
+          return result;
+        },
+        // ----------------------------------------
+        // for a given property name finds the other properties which value can be compared to this property's value
+        // ----------------------------------------
+        getCompareTargets: function(propName, properties) {
+          var
+            result = [],
+            sourceDef = properties[propName],
+            targetDef = {},
+            propNameIndex;
+
+          for (propNameIndex in properties) {
+            if (propName !== propNameIndex) { // if names are differenct do the check
+              targetDef = properties[propNameIndex];
+              if (this.isCompareTarget(sourceDef, targetDef)) {
+                result.push({
+                  label: this.getPropertyLabel(propNameIndex, targetDef),
+                  name: propNameIndex
+                });
               }
-            } else if (compareObjects(o[keysO[i]], p[keysO[i]]) === false) {
-              return false; //WARNING: does not deal with circular refs other than ^^
             }
           }
-          if (o[keysO[i]] !== p[keysO[i]]) //change !== to != for loose comparison
-          {
-            return false; //not the same value
+
+          return result;
+        },
+        // ----------------------------------------
+        // returns true if sourceDef and targetDef define elements whose value can be compared
+        // ----------------------------------------
+        isCompareTarget: function(sourceDef, targetDef) {
+          if (sourceDef.type !== targetDef.type) {
+            // if both have different type they are not compatible
+            return false;
           }
+
+          if (sourceDef.xtype === undefined && targetDef.xtype === undefined) {
+            // if both are of the same type and do not have xtype and they are compatible
+            return true;
+          }
+
+          if ((sourceDef.xtype === undefined && targetDef.xtype !== undefined) || (sourceDef.xtype !== undefined && targetDef.xtype === undefined)) {
+            // if both have same type but one has xtype and other doesn't they are not compatible
+            return false;
+          }
+
+          if (sourceDef.xtype !== targetDef.xtype) {
+            // if both have same type but different xtypes they are not compatible
+            return false;
+          }
+
+          // at this point both have the same type and same xtype
+
+          if (sourceDef.xtype === 'enum') {
+            // compare xvaluelists
+            if (sourceDef.xvaluelist === undefined || targetDef.xvaluelist === undefined || sourceDef.xvaluelist !== targetDef.xvaluelist) {
+              // if any of the two doesn't have xvaluelist or xvaluelists are different they are not compatible
+              return false;
+            }
+          } else if (sourceDef.xtype === 'lookup') {
+            if (sourceDef.xurl === undefined || targetDef.xurl === undefined || sourceDef.xurl !== targetDef.xurl) {
+              // if any of the two doesn't have xurl or xurls are different they are not compatible
+              return false;
+            }
+          } else {
+            // xtype is not recognized; return false
+            return false;
+          }
+
+          // source and target are compatible; return true
+          return true;
+        },
+        getEnumOptions: function(propDef) {
+          var
+            result = [],
+            value, valueList = [""],
+            trimedValue, index, length;
+
+          if (propDef.xvaluelist !== undefined && propDef.xvaluelist !== "") {
+            valueList = propDef.xvaluelist.split(',');
+          } else if (propDef.enum && this.isArray(propDef.enum)) {
+            valueList = propDef.enum;
+          } else {
+            console.log("xvaluelist or enum property not specified for property definition");
+            console.log(JSON.stringify(propDef, undefined, ' '));
+          }
+
+          length = valueList.length;
+          for (index = 0; index < length; index += 1) {
+            value = valueList[index];
+            trimedValue = value.trim();
+            result.push({
+              name: trimedValue,
+              label: this.capitalize(trimedValue)
+            });
+          }
+
+          return result;
+      },
+      // ----------------------------------------
+      // creates an operator definition
+      // ----------------------------------------
+      createOperatorDef: function(label, name, fieldType) {
+        var result = {
+          label: label,
+          name: name,
+          fieldType: fieldType
         }
-        return true;
+
+        return result;
+      },
+      // ----------------------------------------
+      // creates a new field option
+      // ----------------------------------------
+      createFieldOption: function(label, name, options, fieldType) {
+        var result = {
+          label: label,
+          name: name
+        };
+        if (options !== undefined && this.isArray(options)) {
+          result.options = options;
+        }
+        if (fieldType !== undefined && this.isString(fieldType)) {
+          result.fieldType = fieldType;
+        }
+      },
+      // ----------------------------------------
+      // capitalizes the first letter of a word
+      // ----------------------------------------
+      capitalize: function(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+      },
+      // ----------------------------------------
+      // tests if obj is a javascript array
+      // ----------------------------------------
+      isArray: function(obj) {
+        return Object.prototype.toString.call(obj) === "[object Array]";
+      },
+      isString: function(obj) {
+        return Object.prototype.toString.call(obj) === "[object String]";
       }
+    },
+    // ----------------------------------------
+    // end of at-form-conditions helper functions
+    // ----------------------------------------
+
+    // ----------------------------------------
+    // at-form-conditions html helper functions
+    // ----------------------------------------
+    __htmlHelperFunctions: {
+
+    }
+    // ----------------------------------------
+    // end of at-form-conditions html helper functions
+    // ----------------------------------------
     });
+    // ----------------------------------------
+    // end of at-form-conditions definition
+    // ----------------------------------------
   </script>
 </dom-module>
