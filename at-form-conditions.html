@@ -1,4 +1,5 @@
 <script src="lib/business-rules/conditions-builder.js" type="text/javascript"></script>
+<link rel="import" href="../at-core-theme/at-core-theme.html" />
 
 <dom-module id="at-form-conditions">
   <style>
@@ -49,6 +50,7 @@
     }
   </style>
   <template>
+    <at-core-theme></at-core-theme>
     <div>
       <h4>When these conditions are met ...</h4>
     </div>
@@ -80,7 +82,8 @@
           type: Object,
           value: function() {
             return {
-              "all": [] // "all is needed because add rule interface is not displayed if conditions object is empty
+              kind: "all",
+              conditions: [] // "all is needed because add rule interface is not displayed if conditions object is empty
             };
           },
           notify: true,
@@ -96,14 +99,18 @@
       pr_conditionsBuilder: undefined,
       pr_conditionsHtml: undefined,
       _isInternalUpdate: false,
+      _callCount: 0,
+      _isReady: false,
       ready: function() {
-
+        this._isReady = true;
       },
       initBuilder: function() {
         var self = this;
         if (!this.pr_conditionsBuilder) {
           this.pr_conditionsBuilder = RuleEngineHelpers.conditionsBuilder.call(this);
           this.pr_conditionsBuilder.on('update', function(updateEvent) {
+            self._callCount += 1;
+            console.log("update called " + self._callCount + " times.");
             // this is microevents solution
             // conditionsBuilder provides for update event
             // update event is fired when (sub)conditions are added / removed / modified
@@ -118,9 +125,24 @@
 
             //self.fire('value-changed', self.value);
           });
+
+          this.$.conditionsHtmlContainer.addEventListener('change', function (event) {
+            var target = event.target;
+            var updatePath = target.getAttribute('data-update-path');
+            var value = target.value;
+            self.set(updatePath, value, self.value);
+            self.fire('value-changed', { value: self.value });
+
+            self._callCount += 1;
+            console.log("Change event triggered " + self._callCount + " times.");
+          });
         }
       },
       schemaChanged: function(newValue, oldValue) {
+        if (!this._isReady) {
+          return;
+        }
+
         if (this.__conditionsHelperFunctions.isSchemaValid(newValue)) {
           var t_config = this.__conditionsHelperFunctions.schemaToConfig(newValue);
           this.config = t_config.value.fields;
@@ -132,11 +154,19 @@
         return conditionsData;
       },
       configChanged: function(newValue, oldValue) {
+        if (!this._isReady) {
+          return;
+        }
+
         this.initBuilder();
-        this.pr_conditionsBuilder.setConditions(newValue);
+        //this.pr_conditionsBuilder.setConditions(newValue);
         this._rebuildConditionsHtml();
       },
       valueChanged: function(newValue, oldValue) {
+        if (!this._isReady) {
+          return;
+        }
+
         if (this._isInternalUpdate) {
           // this flag is needed to break the infinite loop
           // when internal values of the conditions change value just needs to be set
@@ -150,9 +180,10 @@
       },
       _rebuildConditionsHtml: function() {
         this.removeAllChildren(this.$.conditionsHtmlContainer);
-        this.pr_conditionsHtml = this.pr_conditionsBuilder.buildConditionsHtml();
-        Polymer.dom(this.$.conditionsHtmlContainer).appendChild(this.pr_conditionsHtml);
-        this.disabledChanged(this.disabled, this.disabled);
+        this.__htmlHelperFunctions.buildConditionsHtml(this.$.conditionsHtmlContainer, this.config, this.value);
+        //this.pr_conditionsHtml = this.pr_conditionsBuilder.buildConditionsHtml();
+        //Polymer.dom(this.$.conditionsHtmlContainer).appendChild(this.pr_conditionsHtml);
+        //this.disabledChanged(this.disabled, this.disabled);
         //this._isInternalUpdate = true;
         //var tmpValue = this.collectConditionsData();
         //this.value = tmpValue;
@@ -169,6 +200,10 @@
           aElement,
           aElements = [],
           tmp;
+
+        if (!this._isReady) {
+          return;
+        }
 
         if (this.pr_conditionsHtml !== '') {
           tmp = this.pr_conditionsHtml.querySelectorAll('select');
@@ -254,7 +289,8 @@
               value: {
                 fields: [],
                 data: {
-                  "all": {}
+                  kind: "all",
+                  conditions: []
                 }
               },
               hasErrors: false,
@@ -519,65 +555,409 @@
           }
 
           return result;
-      },
-      // ----------------------------------------
-      // creates an operator definition
-      // ----------------------------------------
-      createOperatorDef: function(label, name, fieldType) {
-        var result = {
-          label: label,
-          name: name,
-          fieldType: fieldType
-        }
+        },
+        // ----------------------------------------
+        // creates an operator definition
+        // ----------------------------------------
+        createOperatorDef: function(label, name, fieldType) {
+          var result = {
+            label: label,
+            name: name,
+            fieldType: fieldType
+          }
 
-        return result;
-      },
-      // ----------------------------------------
-      // creates a new field option
-      // ----------------------------------------
-      createFieldOption: function(label, name, options, fieldType) {
-        var result = {
-          label: label,
-          name: name
-        };
-        if (options !== undefined && this.isArray(options)) {
-          result.options = options;
-        }
-        if (fieldType !== undefined && this.isString(fieldType)) {
-          result.fieldType = fieldType;
-        }
+          return result;
+        },
+        // ----------------------------------------
+        // creates a new field option
+        // ----------------------------------------
+        createFieldOption: function(label, name, options, fieldType) {
+          var result = {
+            label: label,
+            name: name
+          };
+          if (options !== undefined && this.isArray(options)) {
+            result.options = options;
+          }
+          if (fieldType !== undefined && this.isString(fieldType)) {
+            result.fieldType = fieldType;
+          }
 
-        return result;
+          return result;
+        },
+        // ----------------------------------------
+        // capitalizes the first letter of a word
+        // ----------------------------------------
+        capitalize: function(string) {
+          return string.charAt(0).toUpperCase() + string.slice(1);
+        },
+        // ----------------------------------------
+        // tests if obj is a javascript array
+        // ----------------------------------------
+        isArray: function(obj) {
+          return Object.prototype.toString.call(obj) === "[object Array]";
+        },
+        isString: function(obj) {
+          return Object.prototype.toString.call(obj) === "[object String]";
+        }
       },
       // ----------------------------------------
-      // capitalizes the first letter of a word
+      // end of at-form-conditions helper functions
       // ----------------------------------------
-      capitalize: function(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-      },
+
       // ----------------------------------------
-      // tests if obj is a javascript array
+      // at-form-conditions html helper functions
       // ----------------------------------------
-      isArray: function(obj) {
-        return Object.prototype.toString.call(obj) === "[object Array]";
-      },
-      isString: function(obj) {
-        return Object.prototype.toString.call(obj) === "[object String]";
+      __htmlHelperFunctions: {
+        buildConditionsHtml: function(htmlContainer, fields, data) {
+          var updatePath = '';
+          this.buildNodeHtml(htmlContainer, fields, data, updatePath);
+        },
+        buildNodeHtml: function(htmlContainer, fields, data, currentUpdatePath) {
+          var
+            kind = data.kind,
+            index,
+            condition,
+            length = data.conditions.length,
+            isLeaf,
+            self = this,
+            _fields = fields;
+
+          // ----------------------------------------
+          // build all-any-none select
+          // ----------------------------------------
+          var conditionsDiv = document.createElement('div');
+          Polymer.dom(conditionsDiv).classList.add('conditional');
+          Polymer.dom(conditionsDiv).classList.add(kind);
+          Polymer.dom(htmlContainer).appendChild(conditionsDiv);
+
+          var allAnyNoneWrapper = document.createElement('div');
+          Polymer.dom(allAnyNoneWrapper).classList.add('all-any-none-wrapper');
+
+          var allAnyNoneSelect = document.createElement('select');
+          Polymer.dom(allAnyNoneSelect).classList.add('all-any-none');
+          Polymer.dom(allAnyNoneSelect).setAttribute('data-update-path', this.createPath(currentUpdatePath, 'kind'));
+
+          var option = this.createSelectOption("all", "All", kind === "all");
+          Polymer.dom(allAnyNoneSelect).appendChild(option);
+          option = this.createSelectOption("any", "Any", kind === "any");
+          Polymer.dom(allAnyNoneSelect).appendChild(option);
+          option = this.createSelectOption("none", "None", kind === "none");
+          Polymer.dom(allAnyNoneSelect).appendChild(option);
+          Polymer.dom(allAnyNoneWrapper).appendChild(allAnyNoneSelect);
+
+          var span = document.createElement('span');
+          Polymer.dom(span).innerHTML = "of the following conditions:";
+
+          Polymer.dom(allAnyNoneWrapper).appendChild(span);
+          Polymer.dom(conditionsDiv).appendChild(allAnyNoneWrapper);
+
+          // ------------------------------
+          // create add condition button
+          // ------------------------------
+
+          var addRuleLink = document.createElement("button");
+          Polymer.dom(addRuleLink).classList.add('add-rule');
+          Polymer.dom(addRuleLink).setAttribute('type', 'button');
+          Polymer.dom(addRuleLink).innerHTML = "Add Condition";
+
+          addRuleLink.addEventListener('click', function(e) {
+            var _fields = fields;
+            var _htmlContainer = conditionsDiv;
+            var aField = _fields[0];
+
+            var data = {
+              name: aField.name,
+              operator: aField.operators[0],
+              compareTo: "text",
+              value: ""
+            };
+            self.buildLeafHtml(_htmlContainer, _fields, data);
+
+            console.log('Add condition clicked.');
+          });
+          Polymer.dom(conditionsDiv).appendChild(addRuleLink);
+
+          // ------------------------------
+          // create add sub-condition button
+          // ------------------------------
+          var addConditionLink = document.createElement("button");
+          Polymer.dom(addConditionLink).classList.add('add-condition');
+          Polymer.dom(addConditionLink).setAttribute('type', 'button');
+          Polymer.dom(addConditionLink).innerHTML = "Add Sub-Condition";
+
+          addConditionLink.addEventListener('click', function(e) {
+
+            var f = _this.fields[0];
+            var newField = {
+              kind: "all",
+              conditions: [{
+                name: f.value,
+                operator: f.operators[0],
+                value: null
+              }]
+            };
+            Polymer.dom(div).appendChild(_this.buildNodeHtml(newField));
+
+            console.log('Add sub-condition clicked.');
+          });
+          Polymer.dom(conditionsDiv).appendChild(addConditionLink);
+
+          // ------------------------------
+          // create remove condition / sub-condition button
+          // ------------------------------
+          var removeLink = document.createElement('button');
+          Polymer.dom(removeLink).setAttribute('type', 'button');
+          Polymer.dom(removeLink).classList.add('remove');
+          Polymer.dom(removeLink).innerHTML = 'Remove This Sub-Condition';
+
+          removeLink.addEventListener('click', function(e) {
+            debugger;
+
+            Polymer.dom(conditionsDiv.parentElement).removeChild(conditionsDiv);
+
+            console.log('Remove sub-condition clicked.');
+          });
+          Polymer.dom(conditionsDiv).appendChild(removeLink);
+
+          // ------------------------------
+          // build the rules or conditions for this node
+          // ------------------------------
+          for (index = 0; index < length; index += 1) {
+            condition = data.conditions[index];
+            isLeaf = condition.kind === undefined;
+            var updatePath = this.createPath(currentUpdatePath, "conditions."+index);
+
+            if (isLeaf) {
+              this.buildLeafHtml(conditionsDiv, fields, condition, updatePath);
+            } else {
+              this.buildNodeHtml(conditionsDiv, fields, condition, updatePath);
+            }
+          }
+        },
+        // ------------------------------
+        // builds the html structure for the rule
+        // ------------------------------
+        buildLeafHtml: function(htmlContainer, fields, data, updatePath) {
+          data.compareTo = data.compareTo !== undefined ? data.compareTo : 'text';
+          if (data.compareTo !== 'text' && data.compareTo !== 'field') {
+            var errorMsgTemplate = "Rule {0} has incorrect value for compareTo property. Provided value is {1} but valid values are text or field. This rule will not be shown in the editor";
+            var errorMsg = formatString(errorMsgTemplate, a, b, c);
+            console.log(errorMsg);
+          }
+
+          // ------------------------------
+          // create the html container for the rule
+          // ------------------------------
+          var leafContainer = document.createElement('div');
+          Polymer.dom(leafContainer).classList.add('rule');
+          Polymer.dom(htmlContainer).appendChild(leafContainer);
+          // ------------------------------
+          // create the select element for selecting the field(s)
+          // ------------------------------
+          var fieldSelect = this.createFieldSelect(fields, data);
+          Polymer.dom(fieldSelect).setAttribute('data-update-path', this.createPath(updatePath, 'name'));
+          Polymer.dom(leafContainer).appendChild(fieldSelect);
+
+          fieldSelect.addEventListener('change', function(event) {
+            debugger;
+          });
+          // ------------------------------
+          // create the select element for selecting operator(s)
+          // ------------------------------
+          var operatorSelect = this.createOperatorSelect(fields, data);
+          Polymer.dom(operatorSelect).setAttribute('data-update-path', this.createPath(updatePath, 'operator'));
+          Polymer.dom(leafContainer).appendChild(operatorSelect);
+
+          operatorSelect.addEventListener('change', function(event) {
+            debugger;
+          });
+
+          // ------------------------------
+          // create the value part for the rule based on field type
+          // and compareTo value
+          // ------------------------------
+          // find the selected operator
+          var selectedOperator = Polymer.dom(operatorSelect).querySelector('option:checked');
+          var selectedField = this.getFieldByName(fields, data.name);
+          var operatorCompareToSelect = this.createOperatorCompareToSelect(selectedOperator, selectedField);
+          Polymer.dom(operatorCompareToSelect).setAttribute('data-update-path', this.createPath(updatePath, 'compareTo'));
+          Polymer.dom(leafContainer).appendChild(operatorCompareToSelect);
+
+          operatorCompareToSelect.addEventListener('change', function(event) {
+            debugger;
+          });
+
+          // ------------------------------
+          // if compareTo is text create an input type=text
+          // if compareTo is field create a select and populate it with options
+          // ------------------------------
+          var selectedCompareTo = Polymer.dom(operatorCompareToSelect).querySelector('option:checked');
+          if (selectedCompareTo !== undefined) {
+            var valueHtml = this.createValueHtml(selectedCompareTo, data, updatePath);
+            Polymer.dom(leafContainer).appendChild(valueHtml);
+            valueHtml.addEventListener('change', function(event) {
+              debugger;
+            });
+          }
+
+
+          // ------------------------------
+          // create the remove button
+          // ------------------------------
+          var removeLink = document.createElement('button');
+          Polymer.dom(removeLink).setAttribute('type', 'button');
+          Polymer.dom(removeLink).classList.add('remove');
+          Polymer.dom(removeLink).innerHTML = "Remove";
+          Polymer.dom(leafContainer).appendChild(removeLink);
+
+          removeLink.addEventListener('click', function(event) {
+            debugger;
+
+            console.log('Remove condition clicked.');
+          });
+        },
+        createFieldSelect: function(fields, data) {
+          var fieldSelect = document.createElement('select');
+          Polymer.dom(fieldSelect).classList.add('field');
+          var index, length = fields.length,
+            field, option;
+
+          for (index = 0; index < length; index += 1) {
+            field = fields[index];
+            option = this.createSelectOption(field.name, field.label, data.name === field.name);
+            Polymer.dom(option).setAttribute('options', JSON.stringify(field.options));
+            Polymer.dom(fieldSelect).appendChild(option);
+          }
+          return fieldSelect;
+        },
+        createOperatorSelect: function(fields, data) {
+          var fieldName = data.name;
+          var operators = this.operatorsFor(fields, fieldName);
+          var i, length = operators.length,
+            operator, option;
+          var operatorSelect = document.createElement('select');
+          Polymer.dom(operatorSelect).classList.add('operator');
+
+          for (i = 0; i < length; i += 1) {
+            operator = operators[i];
+            option = this.createSelectOption(operator.name, operator.label, operator.name === data.operator);
+            Polymer.dom(option).setAttribute('data-field-type', operator.fieldType);
+            Polymer.dom(option).setAttribute('data-compare-to', data.compareTo);
+            Polymer.dom(operatorSelect).appendChild(option);
+          }
+
+          return operatorSelect;
+        },
+        operatorsFor: function(fields, fieldName) {
+          var i, length = fields.length,
+            field;
+          for (i = 0; i < length; i += 1) {
+            var field = fields[i];
+            if (field.name === fieldName) {
+              return field.operators;
+            }
+          }
+        },
+        getFieldByName: function(fields, fieldName) {
+          var i, length = fields.length,
+            field;
+
+          for (i = 0; i < length; i += 1) {
+            field = fields[i];
+            if (field.name === fieldName) {
+              break;
+            }
+          }
+
+          return field;
+        },
+        createSelectOption: function(value, text, selected) {
+          var option = document.createElement("option");
+          option.value = value;
+          option.text = text;
+          option.selected = selected;
+
+          return option;
+        },
+        createOperatorCompareToSelect: function(operatorHtml, field) {
+          var fieldType = operatorHtml.getAttribute('data-field-type');
+          var compareTo = operatorHtml.getAttribute('data-compare-to');
+          var options = field.options,
+            i, length = options.length,
+            option, htmlOption;
+
+          var result = '';
+          if (fieldType === "none") {
+            result = document.createElement('input');
+            Polymer.dom(result).setAttribute('type', 'hidden');
+            Polymer.dom(result).classList.add('compareTo');
+          } else if (fieldType === "select") {
+            result = document.createElement('select');
+            Polymer.dom(result).classList.add('compareTo');
+
+            for (var i = 0; i < length; i++) {
+              option = options[i];
+              htmlOption = this.createSelectOption(option.name, option.label || option.name, compareTo === option.name);
+              Polymer.dom(htmlOption).setAttribute('data-field-type', option.fieldType);
+              if (option.options !== undefined) {
+                Polymer.dom(htmlOption).setAttribute('data-options', JSON.stringify(option.options));
+              }
+              Polymer.dom(result).appendChild(htmlOption);
+            }
+          }
+
+          return result;
+        },
+        createValueHtml: function(selectedCompareTo, data, updatePath) {
+          var result = '';
+          var fieldType = selectedCompareTo.getAttribute('data-field-type');
+          var optionsJson = selectedCompareTo.getAttribute('data-options');
+          var options = JSON.parse(optionsJson);
+
+          switch (fieldType) {
+            case "text":
+              result = document.createElement('input');
+              Polymer.dom(result).setAttribute('type', 'text');
+              Polymer.dom(result).classList.add('value');
+              Polymer.dom(result).setAttribute('data-update-path', this.createPath(updatePath, 'value'));
+              result.value = data.value;
+              break;
+            case "textarea":
+              result = document.createElement('textarea');
+              Polymer.dom(result).classList.add('value');
+              Polymer.dom(result).setAttribute('data-update-path', this.createPath(updatePath, 'value'));
+              result.value = data.value;
+              break;
+            case "select":
+              result = document.createElement('select');
+              Polymer.dom(result).setAttribute('data-update-path', this.createPath(updatePath, 'value'));
+              Polymer.dom(result).classList.add('value');
+
+              for (var i = 0; i < options.length; i++) {
+                var option = options[i];
+                var htmlOption = this.createSelectOption(option.name, option.label || option.name, data.value === option.name);
+                Polymer.dom(result).appendChild(htmlOption);
+              }
+              break;
+          }
+
+          return result;
+        },
+        createPath: function (previousPath, step) {
+          var result = '';
+          if (previousPath === '') {
+            result = step;
+          } else {
+            result = previousPath + "." + step;
+          }
+
+          return result;
+        }
       }
-    },
-    // ----------------------------------------
-    // end of at-form-conditions helper functions
-    // ----------------------------------------
-
-    // ----------------------------------------
-    // at-form-conditions html helper functions
-    // ----------------------------------------
-    __htmlHelperFunctions: {
-
-    }
-    // ----------------------------------------
-    // end of at-form-conditions html helper functions
-    // ----------------------------------------
+      // ----------------------------------------
+      // end of at-form-conditions html helper functions
+      // ----------------------------------------
     });
     // ----------------------------------------
     // end of at-form-conditions definition

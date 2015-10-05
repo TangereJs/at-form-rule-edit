@@ -82,15 +82,74 @@
         "required": ["id", "city"]
       };
 
+      var jsonValue = {
+        "kind": "all",
+        "conditions": [{
+          "name": "id",
+          "operator": "present",
+          "value": "",
+          "compareTo": "text"
+        }, {
+          "name": "name",
+          "operator": "equalTo",
+          "value": "pera",
+          "compareTo": "text"
+        }, {
+          "name": "city",
+          "operator": "notEqualTo",
+          "value": "name",
+          "compareTo": "text"
+        }, {
+          "kind": "any",
+          "conditions": [{
+            "name": "active",
+            "operator": "equalTo",
+            "value": "true",
+            "compareTo": "text"
+          }, {
+            "name": "activePera",
+            "operator": "notEqualTo",
+            "value": "active",
+            "compareTo": "text"
+          }, {
+            "name": "dropdownDemo",
+            "operator": "equalTo",
+            "value": "JSON",
+            "compareTo": "text"
+          }]
+        }, {
+          "kind": "none",
+          "conditions": [{
+            "name": "active",
+            "operator": "notEqualTo",
+            "value": "false",
+            "compareTo": "text"
+          }, {
+            "name": "activePera",
+            "operator": "equalTo",
+            "value": "active",
+            "compareTo": "text"
+          }, {
+            "name": "dropdownDemo",
+            "operator": "notEqualTo",
+            "value": "XML",
+            "compareTo": "text"
+          }]
+        }]
+      }
+
       var conditionsValueEcho = document.getElementById('conditionsValueEcho');
       var afConditions = document.getElementById('afConditions');
       afConditions.schema = jsonSchema;
+      afConditions.value = jsonValue;
 
       afConditions.addEventListener('value-changed', function(event) {
         var jsonValue = JSON.stringify(event.detail.value, undefined, ' ');
         conditionsValueEcho.value = jsonValue;
       });
 
+      var valueJsonStr = JSON.stringify(jsonValue, undefined, ' ');
+      conditionsValueEcho.value = valueJsonStr;
       conditionsValueEcho.addEventListener('change', function(event) {
         var
           jsonValue = event.currentTarget.value,
