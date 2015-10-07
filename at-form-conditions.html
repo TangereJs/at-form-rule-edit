@@ -95,7 +95,6 @@
         }
       },
       _scopeCssViaAttr: true,
-      _callCount: 0,
       _isReady: false,
       ready: function() {
         this._isReady = true;
@@ -113,9 +112,6 @@
           self.fire('value-changed', {
             value: self.value
           });
-
-          self._callCount += 1;
-          console.log("Change event triggered " + self._callCount + " times.");
         });
       },
       schemaChanged: function(newValue, oldValue) {
@@ -143,6 +139,82 @@
 
         this._rebuildConditionsHtml();
       },
+      _rebuildConditionsHtml: function() {
+        Polymer.dom(this.$.conditionsHtmlContainer).innerHTML = '';
+        this.buildConditionsHtml(this.$.conditionsHtmlContainer, this.config, this.value);
+        this.disabledChanged(this.disabled);
+      },
+      disabledChanged: function(newValue, oldValue) {
+        var
+          selectIndex,
+          selectElement,
+          selectElements = [],
+          inputIndex,
+          inputElement,
+          inputElements = [],
+          aIndex,
+          aElement,
+          aElements = [],
+          tmp;
+
+        if (!this._isReady) {
+          return;
+        }
+        var queryRoot = Polymer.dom(this.$.conditionsHtmlContainer);
+          tmp = queryRoot.querySelectorAll('select');
+          if (tmp.length > 0) {
+            this.pushArray1IntoArray2(tmp, selectElements);
+          }
+          tmp = queryRoot.querySelectorAll('input');
+          if (tmp.length > 0) {
+            this.pushArray1IntoArray2(tmp, inputElements);
+          }
+          tmp = queryRoot.querySelectorAll('button');
+          if (tmp.length > 0) {
+            this.pushArray1IntoArray2(tmp, aElements);
+          }
+
+        if (newValue) {
+          for (selectIndex = 0; selectIndex < selectElements.length; selectIndex += 1) {
+            selectElement = selectElements[selectIndex];
+            Polymer.dom(selectElement).setAttribute('disabled', 'disabled');
+          }
+          for (inputIndex = 0; inputIndex < inputElements.length; inputIndex += 1) {
+            inputElement = inputElements[inputIndex];
+                        Polymer.dom(inputElement).setAttribute('disabled', 'disabled');
+          }
+          for (aIndex = 0; aIndex < aElements.length; aIndex += 1) {
+            aElement = aElements[aIndex];
+            Polymer.dom(aElement).setAttribute('disabled', 'disabled');
+          }
+        } else {
+          for (selectIndex = 0; selectIndex < selectElements.length; selectIndex += 1) {
+            selectElement = selectElements[selectIndex];
+            Polymer.dom(selectElement).removeAttribute('disabled');
+          }
+          for (inputIndex = 0; inputIndex < inputElements.length; inputIndex += 1) {
+            inputElement = inputElements[inputIndex];
+            Polymer.dom(inputElement).removeAttribute('disabled');
+          }
+          for (aIndex = 0; aIndex < aElements.length; aIndex += 1) {
+            aElement = aElements[aIndex];
+            Polymer.dom(aElement).removeAttribute('disabled');
+          }
+        }
+      },
+
+      pushArray1IntoArray2: function(array1, array2) {
+        var
+          arr1Index;
+
+        for (arr1Index = 0; arr1Index < array1.length; arr1Index += 1) {
+          array2.push(array1[arr1Index]);
+        }
+      },
+      // ------------------------------
+      // for the specified updatePath inserts the data for the condition into conditions array
+      // and fires the value-changed event
+      // ------------------------------
       addCondition: function(updatePath, data) {
         var conditionData = this.get(updatePath, this.value);
         conditionData.push(data);
@@ -150,6 +222,11 @@
           value: this.value
         });
       },
+      // ------------------------------
+      // for the specified updatePath removes the data for the condition from conditions array
+      // updates the updatePaths for elements where necessary
+      // and fires the value-changed event
+      // ------------------------------
       removeCondition: function(updatePath) {
         var pathParts = this._getPathParts(updatePath);
         var removePath = pathParts[pathParts.length - 1];
@@ -179,6 +256,9 @@
           value: this.value
         });
       },
+      // ------------------------------
+      // updates the updatePath for the condition (contains zero or more rules or conditions)
+      // ------------------------------
       updateNodePath: function(container, oldPath, newPath) {
         // update container's attribute
         this.updatePathAttribute(container, oldPath, newPath);
@@ -207,6 +287,9 @@
           }
         }
       },
+      // ------------------------------
+      // updates the updatePath for the rule
+      // ------------------------------
       updateLeafPath: function(leaf, oldPath, newPath) {
         this.updatePathAttribute(leaf, oldPath, newPath);
 
@@ -226,85 +309,14 @@
         }
         this.updatePathAttribute(removeButton, oldPath, newPath);
       },
+      // ------------------------------
+      // helper function which updates the data-update-path attribute
+      // ------------------------------
       updatePathAttribute: function(node, oldPath, newPath) {
         var updatePath = node.getAttribute('data-update-path');
         updatePath = updatePath.replace(oldPath, newPath);
         Polymer.dom(node).setAttribute('data-update-path', updatePath);
       },
-      _rebuildConditionsHtml: function() {
-        Polymer.dom(this.$.conditionsHtmlContainer).innerHTML = '';
-        this.buildConditionsHtml(this.$.conditionsHtmlContainer, this.config, this.value);
-      },
-      disabledChanged: function(newValue, oldValue) {
-        var
-          selectIndex,
-          selectElement,
-          selectElements = [],
-          inputIndex,
-          inputElement,
-          inputElements = [],
-          aIndex,
-          aElement,
-          aElements = [],
-          tmp;
-
-        if (!this._isReady) {
-          return;
-        }
-
-        if (this.pr_conditionsHtml !== '') {
-          tmp = this.pr_conditionsHtml.querySelectorAll('select');
-          if (tmp.length > 0) {
-            this.pushArray1IntoArray2(tmp, selectElements);
-          }
-          tmp = this.pr_conditionsHtml.querySelectorAll('input');
-          if (tmp.length > 0) {
-            this.pushArray1IntoArray2(tmp, inputElements);
-          }
-          tmp = this.pr_conditionsHtml.querySelectorAll('button');
-          if (tmp.length > 0) {
-            this.pushArray1IntoArray2(tmp, aElements);
-          }
-        }
-
-        if (newValue) {
-          for (selectIndex = 0; selectIndex < selectElements.length; selectIndex += 1) {
-            selectElement = selectElements[selectIndex];
-            selectElement.setAttribute('disabled', 'disabled');
-          }
-          for (inputIndex = 0; inputIndex < inputElements.length; inputIndex += 1) {
-            inputElement = inputElements[inputIndex];
-            inputElement.setAttribute('disabled', 'disabled');
-          }
-          for (aIndex = 0; aIndex < aElements.length; aIndex += 1) {
-            aElement = aElements[aIndex];
-            aElement.setAttribute('disabled', 'disabled');
-          }
-        } else {
-          for (selectIndex = 0; selectIndex < selectElements.length; selectIndex += 1) {
-            selectElement = selectElements[selectIndex];
-            selectElement.removeAttribute('disabled');
-          }
-          for (inputIndex = 0; inputIndex < inputElements.length; inputIndex += 1) {
-            inputElement = inputElements[inputIndex];
-            inputElement.removeAttribute('disabled');
-          }
-          for (aIndex = 0; aIndex < aElements.length; aIndex += 1) {
-            aElement = aElements[aIndex];
-            aElement.removeAttribute('disabled');
-          }
-        }
-      },
-
-      pushArray1IntoArray2: function(array1, array2) {
-        var
-          arr1Index;
-
-        for (arr1Index = 0; arr1Index < array1.length; arr1Index += 1) {
-          array2.push(array1[arr1Index]);
-        }
-      },
-
       // ----------------------------------------
       // at-form-conditions helper functions
       // ----------------------------------------
@@ -578,9 +590,6 @@
             valueList = propDef.xvaluelist.split(',');
           } else if (propDef.enum && this.isArray(propDef.enum)) {
             valueList = propDef.enum;
-          } else {
-            console.log("xvaluelist or enum property not specified for property definition");
-            console.log(JSON.stringify(propDef, undefined, ' '));
           }
 
           length = valueList.length;
@@ -719,8 +728,6 @@
 
           self.buildLeafHtml(_htmlContainer, _fields, data, newPath);
           self.addCondition(updatePath, data);
-
-          console.log('Add condition clicked.');
         });
         Polymer.dom(conditionsDiv).appendChild(addRuleLink);
 
@@ -754,8 +761,6 @@
           self.buildNodeHtml(_htmlContainer, _fields, data, localPath);
 
           self.addCondition(updatePath, data);
-
-          console.log('Add sub-condition clicked.');
         });
         Polymer.dom(conditionsDiv).appendChild(addConditionLink);
 
@@ -775,8 +780,6 @@
 
           var updatePath = e.target.getAttribute('data-update-path');
           self.removeCondition(updatePath);
-
-          console.log('Remove sub-condition clicked.');
         });
         Polymer.dom(conditionsDiv).appendChild(removeLink);
 
@@ -802,9 +805,7 @@
         var self = this;
         data.compareTo = data.compareTo !== undefined ? data.compareTo : 'text';
         if (data.compareTo !== 'text' && data.compareTo !== 'field') {
-          var errorMsgTemplate = "Rule {0} has incorrect value for compareTo property. Provided value is {1} but valid values are text or field. This rule will not be shown in the editor";
-          var errorMsg = formatString(errorMsgTemplate, a, b, c);
-          console.log(errorMsg);
+          data.compareTo = 'text';
         }
 
         // ------------------------------
@@ -832,7 +833,6 @@
 
           var updatePath = event.target.getAttribute('data-update-path');
           self.removeCondition(updatePath);
-          console.log('Remove condition clicked.');
         });
 
         // ------------------------------
