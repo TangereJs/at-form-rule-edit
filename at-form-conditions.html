@@ -86,7 +86,6 @@
               conditions: [] // "all is needed because add rule interface is not displayed if conditions object is empty
             };
           },
-          notify: true,
           observer: 'valueChanged'
         },
         disabled: {
@@ -144,40 +143,43 @@
 
         this._rebuildConditionsHtml();
       },
-      addCondition: function (updatePath, data) {
+      addCondition: function(updatePath, data) {
         var conditionData = this.get(updatePath, this.value);
         conditionData.push(data);
-        this.fire('value-changed', { value: this.value });
+        this.fire('value-changed', {
+          value: this.value
+        });
       },
-      removeCondition: function (updatePath) {
+      removeCondition: function(updatePath) {
         var pathParts = this._getPathParts(updatePath);
-        var removePath = pathParts[pathParts.length-1];
-        pathParts.splice(pathParts.length-1, 1);
+        var removePath = pathParts[pathParts.length - 1];
+        pathParts.splice(pathParts.length - 1, 1);
 
         var conditions = this.get(pathParts, this.value);
         var removeIndex = parseInt(removePath);
 
-        for (var i = removeIndex+1; i < conditions.length; i++) {
+        for (var i = removeIndex + 1; i < conditions.length; i++) {
           // create the container selector
           var containerSelector = '[data-update-path=\'' + pathParts.join('.') + '.' + i + '\']';
           // find the condition / rule div
           var container = Polymer.dom(this.$.conditionsHtmlContainer).querySelector(containerSelector);
           // start the update process on the div
           var oldPath = pathParts.join('.') + '.' + i;
-          var newPath = pathParts.join('.') + '.' + (i-1);
-          if (Polymer.dom(container).classList.contains('rule')){
+          var newPath = pathParts.join('.') + '.' + (i - 1);
+          if (Polymer.dom(container).classList.contains('rule')) {
             this.updateLeafPath(container, oldPath, newPath);
-          } else if (Polymer.dom(container).classList.contains('conditional'))
-          {
+          } else if (Polymer.dom(container).classList.contains('conditional')) {
             this.updateNodePath(container, oldPath, newPath);
           }
         }
 
         conditions.splice(removePath, 1);
 
-        this.fire("value-changed", { value: this.value });
+        this.fire("value-changed", {
+          value: this.value
+        });
       },
-      updateNodePath: function (container, oldPath, newPath) {
+      updateNodePath: function(container, oldPath, newPath) {
         // update container's attribute
         this.updatePathAttribute(container, oldPath, newPath);
 
@@ -194,19 +196,18 @@
         this.updatePathAttribute(removeButton, oldPath, newPath);
 
         var childNodes = Polymer.dom(container).childNodes,
-        i, child, length = childNodes.length;
+          i, child, length = childNodes.length;
 
         for (i = 0; i < length; i++) {
           child = childNodes[i];
           if (child.classList.contains('rule')) {
             this.updateLeafPath(child, oldPath, newPath);
-          } else if (child.classList.contains('conditional'))
-          {
+          } else if (child.classList.contains('conditional')) {
             this.updateNodePath(child, oldPath, newPath);
           }
         }
       },
-      updateLeafPath: function (leaf, oldPath, newPath) {
+      updateLeafPath: function(leaf, oldPath, newPath) {
         this.updatePathAttribute(leaf, oldPath, newPath);
 
         var fieldSelect = Polymer.dom(leaf).querySelector('.field');
@@ -225,7 +226,7 @@
         }
         this.updatePathAttribute(removeButton, oldPath, newPath);
       },
-      updatePathAttribute: function (node, oldPath, newPath) {
+      updatePathAttribute: function(node, oldPath, newPath) {
         var updatePath = node.getAttribute('data-update-path');
         updatePath = updatePath.replace(oldPath, newPath);
         Polymer.dom(node).setAttribute('data-update-path', updatePath);
@@ -389,14 +390,14 @@
               case "number":
                 field.operators.push(this.createOperatorDef("is present", "present", "none"));
                 field.operators.push(this.createOperatorDef("is blank", "blank", "none"));
-                  field.operators.push(this.createOperatorDef("is equal to", "equalTo", "select"));
-                  field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "select"));
-                  field.operators.push(this.createOperatorDef("is less than", "lessThan", "select"));
-                  field.operators.push(this.createOperatorDef("is less than or equal to", "lessThanEqual", "select"));
-                  field.operators.push(this.createOperatorDef("is greater than", "greaterThan", "select"));
-                  field.operators.push(this.createOperatorDef("is greater than or equal to", "greaterThanEqual", "select"));
+                field.operators.push(this.createOperatorDef("is equal to", "equalTo", "select"));
+                field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "select"));
+                field.operators.push(this.createOperatorDef("is less than", "lessThan", "select"));
+                field.operators.push(this.createOperatorDef("is less than or equal to", "lessThanEqual", "select"));
+                field.operators.push(this.createOperatorDef("is greater than", "greaterThan", "select"));
+                field.operators.push(this.createOperatorDef("is greater than or equal to", "greaterThanEqual", "select"));
 
-                  field.options.push(this.createFieldOption("Static", "static", undefined, "text"));
+                field.options.push(this.createFieldOption("Static", "static", undefined, "text"));
                 if (hasCompareTargets) {
                   field.options.push(this.createFieldOption("Field", "field", compareTargets, "select"));
                 }
@@ -425,13 +426,9 @@
                   enumOptions = this.getEnumOptions(propDef),
                   hasEnumOptions = enumOptions.length > 0;
 
-                if (hasCompareTargets || hasEnumOptions) {
-                  field.operators.push(this.createOperatorDef("is equal to", "equalTo", "select"));
-                  field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "select"));
-                } else {
-                  field.operators.push(this.createOperatorDef("is equal to", "equalTo", "text"));
-                  field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "text"));
-                }
+                field.operators.push(this.createOperatorDef("is equal to", "equalTo", "select"));
+                field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "select"));
+
 
                 if (hasEnumOptions) {
                   field.options.push(this.createFieldOption("Static", "static", enumOptions, "select"));
@@ -441,7 +438,25 @@
                 if (hasCompareTargets) {
                   field.options.push(this.createFieldOption("Field", "field", compareTargets, "select"));
                 }
+                break;
+              case "lookup":
+                field.operators.push(this.createOperatorDef("is present", "present", "none"));
+                field.operators.push(this.createOperatorDef("is blank", "blank", "none"));
 
+                enumOptions = this.getEnumOptions(propDef);
+                hasEnumOptions = enumOptions.length > 1;
+
+                field.operators.push(this.createOperatorDef("is equal to", "equalTo", "select"));
+                field.operators.push(this.createOperatorDef("it not equal to", "notEqualTo", "select"));
+
+                if (hasEnumOptions) {
+                  field.options.push(this.createFieldOption("Static", "static", enumOptions, "select"));
+                } else {
+                  field.options.push(this.createFieldOption("Static", "static", undefined, "text"));
+                }
+                if (hasCompareTargets) {
+                  field.options.push(this.createFieldOption("Field", "field", compareTargets, "select"));
+                }
                 break;
             }
             // end switch (propType)
@@ -784,7 +799,7 @@
       // builds the html structure for the rule
       // ------------------------------
       buildLeafHtml: function(htmlContainer, fields, data, updatePath) {
-        var self= this;
+        var self = this;
         data.compareTo = data.compareTo !== undefined ? data.compareTo : 'text';
         if (data.compareTo !== 'text' && data.compareTo !== 'field') {
           var errorMsgTemplate = "Rule {0} has incorrect value for compareTo property. Provided value is {1} but valid values are text or field. This rule will not be shown in the editor";
@@ -894,7 +909,7 @@
         var selectedOperatorOption = Polymer.dom(operatorSelect).querySelector('option:checked');
         var self = this;
 
-        operatorSelect.addEventListener('change', function(event){
+        operatorSelect.addEventListener('change', function(event) {
           var _container = htmlContainer;
           var updatePath = _container.getAttribute('data-update-path');
           var target = event.target;
@@ -943,7 +958,7 @@
 
           Polymer.dom(htmlContainer).insertBefore(result, removeButton);
           var self = this;
-          result.addEventListener('change', function (event) {
+          result.addEventListener('change', function(event) {
             var _container = htmlContainer;
             var target = event.target;
             var parentNode = Polymer.dom(target).parentNode;
@@ -986,7 +1001,7 @@
             Polymer.dom(result).classList.add('value');
             Polymer.dom(result).setAttribute('data-update-path', this.createPath(updatePath, 'value'));
             result.value = data.value;
-          break;
+            break;
           case "text":
             result = document.createElement('input');
             Polymer.dom(result).setAttribute('type', 'text');
@@ -1039,18 +1054,18 @@
         return option;
       },
       createPath: function(previousPath, step) {
-        var result = '';
-        if (previousPath === '') {
-          result = step;
-        } else {
-          result = previousPath + "." + step;
-        }
+          var result = '';
+          if (previousPath === '') {
+            result = step;
+          } else {
+            result = previousPath + "." + step;
+          }
 
-        return result;
-      }
-      // ----------------------------------------
-      // end of at-form-conditions html helper functions
-      // ----------------------------------------
+          return result;
+        }
+        // ----------------------------------------
+        // end of at-form-conditions html helper functions
+        // ----------------------------------------
     });
     // ----------------------------------------
     // end of at-form-conditions definition
