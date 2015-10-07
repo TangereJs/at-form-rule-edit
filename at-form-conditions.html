@@ -862,7 +862,7 @@
         var operatorSelect = this.createOperatorSelect(leafContainer, selectedField, data, updatePath);
       },
       // ------------------------------
-      //
+      // creates the select with available fields
       // ------------------------------
       createFieldSelect: function(fields, data, updatePath) {
         var fieldSelect = document.createElement('select');
@@ -880,7 +880,7 @@
         return fieldSelect;
       },
       // ------------------------------
-      //
+      // creates a select element populated with operators for the selected field
       // ------------------------------
       createOperatorSelect: function(htmlContainer, selectedField, data, updatePath) {
         var prevOperatorSelect = Polymer.dom(htmlContainer).querySelector('.operator');
@@ -911,19 +911,20 @@
 
         operatorSelect.addEventListener('change', function(event) {
           var _container = htmlContainer;
+          var _data = data;
           var updatePath = _container.getAttribute('data-update-path');
           var target = event.target;
           var selectedOperatorOption = Polymer.dom(target).querySelector('option:checked');
 
-          self.createOperatorCompareToSelect(_container, selectedOperatorOption, updatePath);
+          self.createOperatorCompareToSelect(_container, selectedOperatorOption, _data, updatePath);
         });
 
-        this.createOperatorCompareToSelect(htmlContainer, selectedOperatorOption, updatePath);
+        this.createOperatorCompareToSelect(htmlContainer, selectedOperatorOption, data, updatePath);
       },
       // ------------------------------
-      //
+      // creates select field with static and field options
       // ------------------------------
-      createOperatorCompareToSelect: function(htmlContainer, selectedOperatorOption, updatePath) {
+      createOperatorCompareToSelect: function(htmlContainer, selectedOperatorOption, data, updatePath) {
         var prevCompareTo = Polymer.dom(htmlContainer).querySelector('.compareTo');
         if (prevCompareTo !== undefined) {
           Polymer.dom(htmlContainer).removeChild(prevCompareTo);
@@ -963,14 +964,13 @@
             var target = event.target;
             var parentNode = Polymer.dom(target).parentNode;
             var updatePath = parentNode.getAttribute('data-update-path');
-            var data = self.get(updatePath, self.value);
+            var _data = data
             var selectedCompareTo = Polymer.dom(target).querySelector('option:checked');
 
             self.createValueHtml(_container, selectedCompareTo, data, updatePath);
           });
 
           var selectedCompareTo = Polymer.dom(result).querySelector('option:checked');
-          var data = this.get(updatePath, this.value);
           this.createValueHtml(htmlContainer, selectedCompareTo, data, updatePath);
         } else {
           var prevValueHtml = Polymer.dom(htmlContainer).querySelector('.value');
@@ -980,7 +980,8 @@
         }
       },
       // ------------------------------
-      //
+      // creates html for the value part; it creates either a text, textarea or select
+      // last part of the "waterfall cascade"
       // ------------------------------
       createValueHtml: function(htmlContainer, selectedCompareTo, data, updatePath) {
         var prevValueHtml = Polymer.dom(htmlContainer).querySelector('.value');
