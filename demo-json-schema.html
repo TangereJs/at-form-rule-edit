@@ -41,24 +41,6 @@
 
   <script>
     document.addEventListener('WebComponentsReady', function () {
-      var occupationOptions = [
-        {
-          label: "",
-          name: ""
-        },
-        {
-          label: "Software Engineer",
-          name: "software-engineer"
-        },
-        {
-          label: "Biz Dev",
-          name: "biz-dev"
-        },
-        {
-          label: "Marketing",
-          name: "marketing"
-        }
-        ];
 
       var jsonSchema = {
         "properties": {
@@ -71,7 +53,7 @@
             "required": "true",
             "xinputmode": "required"
           },
-          "city": {            
+          "city": {
             "type": "string",
             "default": "Default city name"
           },
@@ -100,16 +82,10 @@
         "required": ["id", "city"]
       };
 
-      //var conditionsConfig = {
-      //  "name": { "type": "string" },
-      //  "age": { "type": "number" },
-      //  "booleanTest": { "type": "boolean", "default": "false", "options": [{ label: "true", name: "true" }, { label: "false", name: "false" }], "defaultOperator": "equalTo" },
-      //  "occupation": { "type": "enum", "options": occupationOptions }
-      //};
-
       var conditionsAndActionsData = {
         conditions: {
-          all: []
+          kind: "all",
+          conditions: []
         },
         actions: [
           {
