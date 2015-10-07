@@ -7,36 +7,52 @@
 
   <script src="../webcomponentsjs/webcomponents-lite.js"></script>
   <link rel="import" href="../polymer/polymer.html" />
+  <link rel="import" href="../layout/layout.html">
   <link rel="import" href="at-form-actions.html" />
+
+  <style media="screen">
+    .textarea {
+      min-height: 300px;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
 </head>
 
 <body>
-  <div>
-    <h2>Actions Demo - static schema</h2>
-    <at-form-actions id="afActions1">
-    </at-form-actions>
-    <div>
-      <h3>Actions value echo:</h3>
-      <div id="actionsValueEcho1"></div>
+  <div class="vertical layout">
+    <div class="horizontal layout">
+      <div class="vertical layout flex-8">
+        <h2>Actions Demo - static schema</h2>
+        <at-form-actions id="afActions1"></at-form-actions>
+      </div>
+      <div class="vertical layout flex-4">
+        <h3>Actions value echo:</h3>
+        <textarea disabled class="textarea" id="actionsValueEcho1"></textarea>
+      </div>
     </div>
-  </div>
-  <div>
-    <h2>Actions Demo - json schema</h2>
-    <at-form-actions id="afActions2">
-    </at-form-actions>
-    <div>
-      <h3>Actions value echo:</h3>
-      <div id="actionsValueEcho2"></div>
+
+    <div class="horizontal layout">
+      <div class="vertical layout flex-8">
+        <h2>Actions Demo - json schema</h2>
+        <at-form-actions id="afActions2"></at-form-actions>
+      </div>
+      <div class="vertical layout flex-4">
+        <h3>Actions value echo:</h3>
+        <textarea class="textarea" disabled id="actionsValueEcho2"></textarea>
+      </div>
     </div>
-  </div>
-  <div>
-    <h2>Actions Demo - static schema disabled</h2>
-    <at-form-actions id="afActions3" disabled>
-    </at-form-actions>
-    <div>
-      <h3>Actions value echo:</h3>
-      <div id="actionsValueEcho3"></div>
+    <div class="horizontal layout">
+      <div class="vertical layout flex-8">
+        <h2>Actions Demo - static schema disabled</h2>
+        <at-form-actions id="afActions3" disabled></at-form-actions>
+      </div>
+      <div class="vertical layout flex-4">
+        <h3>Actions value echo:</h3>
+        <textarea class="textarea" disabled id="actionsValueEcho3"></textarea>
+      </div>
     </div>
+
   </div>
   <script>
     document.addEventListener('WebComponentsReady', function() {
@@ -96,7 +112,7 @@
               options: enemyOptions
             }]
           }]
-        }, ]
+        }]
       }];
 
       var value = [{
@@ -124,9 +140,10 @@
       afActions1.config = config;
       afActions1.value = value;
 
+      actionsValueEcho1.value = JSON.stringify(afActions1.value, undefined, ' ');
       afActions1.addEventListener('value-changed', function(event) {
-        var jsonValue = JSON.stringify(event.detail);
-        actionsValueEcho1.textContent = jsonValue;
+        var jsonValue = JSON.stringify(event.detail, undefined, ' ');
+        actionsValueEcho1.value = jsonValue;
       });
 
       var jsonSchema = {
@@ -173,9 +190,10 @@
       var afActions2 = document.getElementById('afActions2');
       afActions2.schema = jsonSchema;
 
+      actionsValueEcho2.value = JSON.stringify(afActions2.value, undefined, ' ');
       afActions2.addEventListener('value-changed', function(event) {
-        var jsonValue = JSON.stringify(event.detail);
-        actionsValueEcho2.textContent = jsonValue;
+        var jsonValue = JSON.stringify(event.detail, undefined, ' ');
+        actionsValueEcho2.value = jsonValue;
       });
 
 
@@ -184,8 +202,9 @@
       afActions3.config = config;
       afActions3.value = value;
 
+      actionsValueEcho3.value = JSON.stringify(afActions3.value, undefined, ' ');
       afActions3.addEventListener('value-changed', function(event) {
-        var jsonValue = JSON.stringify(event.detail);
+        var jsonValue = JSON.stringify(event.detail, undefined, ' ');
         actionsValueEcho3.textContent = jsonValue;
       });
     });

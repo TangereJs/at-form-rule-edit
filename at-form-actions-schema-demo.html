@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>at-form-actions Demo</title>
+
+  <script src="../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../polymer/polymer.html" />
+  <link rel="import" href="at-form-actions.html" />
+  <link rel="import" href="../layout/layout.html" />
+
+  <style media="screen">
+    .textarea    {
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="vertical layout">
+    <div class="vertical layout">
+      <h2>Actions Demo - json schema</h2>
+      <at-form-actions id="afActions"></at-form-actions>
+    </div>
+
+    <div class="horizontal layout">
+      <div class="vertical layout flex-6">
+          <h3>at-form-actions value</h3>
+          <textarea class="textarea" id="actionsValueEcho" rows="30" cols="50"></textarea>
+      </div>
+      <div class="vertical layout flex-6">
+          <h3>at-form-actions schema</h3>
+          <textarea class="textarea" id="actionsSchema" rows="30" cols="50"></textarea>
+      </div>
+    </div>
+
+    <div class="vertical layout">
+      <h3>at-form-action config echo</h3>
+      <textarea id="actionsConfigEcho" class="textarea" rows="50" cols="50" disabled></textarea>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('WebComponentsReady', function() {
+
+      var jsonSchema = {
+        "properties": {
+          "id": {
+            "description": "The unique identifier for a product",
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "required": "true",
+            "xinputmode": "required"
+          },
+          "city": {
+            "type": "string",
+            "default": "Default city name"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "activePera": {
+            "type": "boolean",
+            "default": true,
+            "description": "This is description for pera"
+          },
+          "dropdownDemo": {
+            "title": "Drop down demo",
+            "type": "string",
+            "xtype": "enum",
+            "xvaluelist": "XML,JSON",
+            "default": "XML"
+          },
+          "card": {
+            "title": "Card",
+            "type": "string",
+            "xtype": "lookup",
+            "xurl": "http://localhost:2014/Activity/adenin.GateKeeper.Content/card/"
+          }
+        },
+        "required": ["id", "city"]
+      };
+
+      var jsonValue = [
+        {
+          actionName: 'alert',
+          message: "Type your message here..."
+        },
+        {
+          actionName: 'updateField',
+          fieldName: "id",
+          updateTo: "123"
+        },
+        {
+          actionName: 'copyFieldValue',
+          fieldName: "name",
+          copyTo: "city"
+        },
+        {
+          actionName: 'setFieldState',
+          fieldName: "dropdownDemo",
+          state: "disabled" // one of [optional, required, disabled or hidden]
+        }
+      ];
+
+      var actionsValueEcho = document.getElementById('actionsValueEcho');
+      var afActions = document.getElementById('afActions');
+      afActions.schema = jsonSchema;
+      afActions.value = jsonValue;
+
+      afActions.addEventListener('value-changed', function(event) {
+        var jsonValue = JSON.stringify(event.detail.value, undefined, ' ');
+        actionsValueEcho.value = jsonValue;
+      });
+
+      var valueJsonStr = JSON.stringify(jsonValue, undefined, ' ');
+      actionsValueEcho.value = valueJsonStr;
+      actionsValueEcho.addEventListener('change', function(event) {
+        var
+          jsonValue = event.currentTarget.value,
+          value = JSON.parse(jsonValue);
+
+        afActions.value = value;
+      });
+
+      var actionsSchema = document.getElementById('actionsSchema');
+      actionsSchema.value = JSON.stringify(jsonSchema, undefined, ' ');
+      actionsSchema.addEventListener('change', function(event) {
+        var
+          jsonSchema = event.currentTarget.value,
+          schema = JSON.parse(jsonSchema);
+        afActions.schema = schema;
+      });
+
+      var actionsConfigEcho = document.getElementById('actionsConfigEcho');
+      actionsConfigEcho.value = JSON.stringify(afActions.config, undefined, ' ');
+    });
+  </script>
+</body>
+
+</html>
