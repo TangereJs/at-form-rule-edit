@@ -42,7 +42,6 @@
             actions: []
           };
         },
-        notify: true,
         observer: 'valueChanged'
       },
       disabled: {
@@ -55,10 +54,14 @@
     ready: function() {
       var self = this;
       this.$.conditions.addEventListener('value-changed', function(event) {
+        event.stopPropagation();
         self.value.conditions = self.$.conditions.value;
+        self.fire('value-changed', { value: self.value });
       });
       this.$.actions.addEventListener('value-changed', function(event) {
+        event.stopPropagation();
         self.value.actions = self.$.actions.value;
+        self.fire('value-changed', { value: self.value });
       });
     },
     schemaChanged: function(newValue, oldValue) {
