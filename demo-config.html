@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>Conditions Demo</title>
+
+  <script src="../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../polymer/polymer.html" />
+  <link rel="import" href="../layout/layout.html" media="screen" charset="utf-8">
+  <link rel="import" href="at-form-rule-edit.html" />
+
+  <style>
+    #demoForm {
+      position: relative;
+      top: 0px;
+      right: 0px;
+      padding: 20px;
+      width: 500px;
+      background: #ddd;
+    }
+
+    #demoForm div {
+      margin: 10px 0;
+    }
+
+    .textarea {
+      min-width: 500px;
+      width: 100%;
+      min-height: 700px;
+      height: 100%
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class="horizontal layout">
+    <div class="vertical layout">
+      <div class="vertical layout">
+        <h2>Conditions and Actions Demo - static schema</h2>
+        <at-form-rule-edit id="ruleEdit"></at-form-rule-edit>
+      </div>
+      <div class="vertical layout">
+        <form id="demoForm" class="ui form">
+          <h3 class="ui header">Try Changing These Values...</h3>
+          <div class="field">
+            <label>Damage</label>
+            <input type="text" id="damageField" />
+          </div>
+          <div class="field">
+            <label>Health</label>
+            <input type="text" id="healthField" />
+          </div>
+          <div class="field">
+            <label>Enemy</label>
+            <select id="enemyField"></select>
+          </div>
+          <div class="field">
+            <button type="button" id="submit">Run Conditions and Actions</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="vertical layout">
+      <h3>Rule edit value echo:</h3>
+      <div class="horizontal layout">
+        <textarea class="textarea" disabled id="ruleEditValueEcho"></textarea>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('WebComponentsReady', function() {
+      var enemyOptions = [{
+        label: "",
+        name: ""
+      }, {
+        label: "Enemy1",
+        name: "enemy1"
+      }, {
+        label: "Enemy2",
+        name: "enemy2"
+      }, {
+        label: "Enemy3",
+        name: "enemy3"
+      }];
+
+      var ruleConfig = {
+        conditions: [{
+          label: "Damage",
+          name: "damageField",
+          options: [{
+            label: "Static",
+            name: "static",
+            fieldType: "text"
+          }],
+          operators: [{
+            label: "is equal to",
+            name: "equalTo",
+            fieldType: "select"
+          }, {
+            label: "is not equal to",
+            name: "notEqualTo",
+            fieldType: "select"
+          }]
+        }, {
+          label: "Health",
+          name: "healthField",
+          options: [{
+            label: "Static",
+            name: "static",
+            fieldType: "text"
+          }],
+          operators: [{
+            label: "is greater than or equal to",
+            name: "greaterThanEqual",
+            fieldType: "select"
+          }, {
+            label: "is less than or equal to",
+            name: "lessThanEqual",
+            fieldType: "select"
+          }]
+        }, {
+          label: "Enemy",
+          name: "enemyField",
+          options: [{
+            label: "Static",
+            name: "static",
+            fieldType: "select",
+            options: enemyOptions
+          }],
+          operators: [{
+            label: "is present",
+            name: "present",
+            fieldType: "none"
+          }, {
+            label: "is blank",
+            name: "blank",
+            fieldType: "none"
+          }, {
+            label: "is equal to",
+            name: "equalTo",
+            fieldType: "select"
+          }, {
+            label: "is not equal to",
+            name: "notEqualTo",
+            fieldType: "select"
+          }]
+        }],
+        actions: {
+          alert: {
+            label: "Show Alert",
+          },
+          updateField: {
+            label: "Update Field",
+            fields: [{
+              label: "Damage to",
+              name: "damageField",
+              updateTo: "text"
+            }, {
+              label: "Health to",
+              name: "healthField",
+              updateTo: "text"
+            }, {
+              label: "Enemy to",
+              name: "enemyField",
+              updateTo: "values",
+              values: enemyOptions
+            }]
+          }
+        }
+      };
+
+      var ruleData = {
+        conditions: {
+          kind: "all",
+          conditions: [{
+            name: "damageField",
+            operator: "equalTo",
+            compareTo: "text",
+            value: "50"
+          }, {
+            name: "healthField",
+            operator: "lessThanEqual",
+            compareTo: "text",
+            value: "49"
+          }]
+        },
+        actions: [{
+          actionName: "alert",
+          message: "You have been ... !"
+        }, {
+          actionName: "updateField",
+          fieldName: "enemyField",
+          updateTo: "enemy3"
+        }]
+      };
+
+      var ruleEdit = document.getElementById('ruleEdit');
+      var ruleEditValueEcho = document.getElementById('ruleEditValueEcho');
+
+      ruleEdit.ruleConfig = ruleConfig;
+      ruleEdit.value = ruleData;
+
+      ruleEdit.addEventListener('value-changed', function(event) {
+        var jsonValue = JSON.stringify(ruleEdit.value, undefined, ' ');
+        ruleEditValueEcho.value = jsonValue;
+      });
+      ruleEditValueEcho.value = JSON.stringify(ruleEdit.value, undefined, ' ');
+
+      var demoForm = document.getElementById('demoForm');
+
+      var enemyField = document.getElementById('enemyField');
+      var healthField = document.getElementById('healthField');
+      var damageField = document.getElementById('damageField');
+
+      for (var i = 0; i < enemyOptions.length; i++) {
+        var o = enemyOptions[i];
+        var optionChild = document.createElement("option");
+        optionChild.value = o.name;
+        optionChild.text = o.label;
+        enemyField.appendChild(optionChild);
+      }
+
+      var submit = document.getElementById('submit');
+      submit.addEventListener('click', function(event) {
+        var lConditions = ruleEdit.value.conditions
+        var lActions = ruleEdit.value.actions;
+
+        var engine = new RuleEngine({
+          conditions: lConditions,
+          actions: lActions
+        });
+        var conditionsAdapter = {
+          damageField: damageField.value,
+          healthField: healthField.value,
+          enemyField: enemyField.value
+        };
+        var actionsAdapter = {
+          alert: function(data) {
+            alert(data.message);
+          },
+          updateField: function(data) {
+            var fieldId = data.fieldName;
+            var field = document.getElementById(fieldId);
+            var val = data.updateTo;
+            field.value = val;
+          }
+        };
+        engine.run(conditionsAdapter, actionsAdapter);
+      });
+
+    });
+  </script>
+</body>
+
+</html>

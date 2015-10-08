@@ -109,37 +109,12 @@ var global = this;
     runActions: function(actionsAdapter) {
       for(var i=0; i < this.actions.length; i++) {
         var actionData = this.actions[i];
-        var actionName = actionData.value;
+        var actionName = actionData.actionName;
         var actionFunction = actionsAdapter[actionName]
-        if(actionFunction) { actionFunction(new Finder(actionData)); }
+        if(actionFunction) { actionFunction(actionData); }
       }
     }
   };
-
-  function Finder(data) {
-    this.data = data;
-  }
-
-  Finder.prototype = {
-    find: function() {
-      var currentNode = this.data;
-      for(var i=0; i < arguments.length; i++) {
-        var name = arguments[i];
-        currentNode = findByName(name, currentNode);
-        if(!currentNode) { return null; }
-      }
-      return currentNode.value;
-    }
-  };
-
-  function findByName(name, node) {
-    var fields = node.fields || [];
-    for(var i=0; i < fields.length; i++) {
-      var field = fields[i];
-      if(field.name === name) { return field; }
-    }
-    return null;
-  }
 
   function handleNode(node, obj, engine, cb) {
     var kind = node.kind;

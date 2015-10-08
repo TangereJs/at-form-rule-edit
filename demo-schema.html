@@ -40,7 +40,7 @@
   </div>
 
   <script>
-    document.addEventListener('WebComponentsReady', function () {
+    document.addEventListener('WebComponentsReady', function() {
 
       var jsonSchema = {
         "properties": {
@@ -87,52 +87,23 @@
           kind: "all",
           conditions: []
         },
-        actions: [
-          {
-            "value": "alert",
-            "fields": [{
-              "name": "message",
-              "value": "This is alert text!"
-            }]
-          },
-          {
-            "value": "updateField",
-            "fields": [{
-              "name": "fieldId",
-              "value": "nameField",
-              "fields": [{
-                "name": "newValue",
-                "value": "This is a new name"
-              }]
-            }]
-          },
-          {
-            "value": "setFieldState",
-            "fields": [{
-              "name": "fieldId",
-              "value": "cityField",
-              "fields": [{
-                "name": "newState",
-                "value": "disabled"
-              }]
-            }]
-          },
-          {
-            "value": "copyFieldValue",
-            "fields": [{
-              "name": "fieldId",
-              "value": "activePeraField",
-              "fields": [{
-                "name": "newValue",
-                "value": "activeField"
-              }]
-            }]
-          },
-        ]
+        actions: [{
+          actionName: "alert",
+          message: "This is alert text!"
+        }, {
+          actionName: "updateField",
+          fieldName: "city",
+          updateTo: "Athens"
+        }, {
+          actionName: "setFieldState",
+          fieldName: "dropdownDemo",
+          state: "disabled"
+        }, {
+          actionName: "copyFieldValue",
+          fieldName: "activePera",
+          copyTo: "active"
+        }]
       };
-
-      window.test = this.$;
-      // use window.test.ruleEdit.collectConditionsData() and window.test.ruleEdit.collectActionsData() to get changed values
 
       var coreForm = document.getElementById('coreForm');
       coreForm.schema = jsonSchema;
@@ -140,17 +111,13 @@
       ruleEdit.schema = jsonSchema;
       ruleEdit.value = conditionsAndActionsData;
 
-      function initializeForm(pElement) {
-        var ruleEdit = document.getElementById('ruleEdit');
-        var submit = document.getElementById('submit');
+      var submit = document.getElementById('submit');
 
-        submit.addEventListener('click', function (e) {
-          e.preventDefault();
-          ruleEdit.checkAgainst(coreForm);
-        });
-      }
+      submit.addEventListener('click', function(e) {
+        e.preventDefault();
+        ruleEdit.checkAgainst(coreForm);
+      });
 
-      initializeForm(this);
     });
   </script>
 </body>

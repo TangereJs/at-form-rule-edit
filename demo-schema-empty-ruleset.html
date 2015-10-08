@@ -35,12 +35,12 @@
       </div>
     </div>
     <div class="horizontal center-justified layout light-padding">
-      <button id="submit">Submit</button>
+      <button id="submit" type="button">Submit</button>
     </div>
   </div>
 
   <script>
-    document.addEventListener('WebComponentsReady', function () {
+    document.addEventListener('WebComponentsReady', function() {
       var schema = {
         "properties": {
           "id": {
@@ -80,61 +80,44 @@
         "required": ["id", "city"]
       };
 
-      // window.test = this.$;
-
-      // use window.test.ruleEdit.collectConditionsData() and window.test.ruleEdit.collectActionsData() to get changed values
       var ruleEdit = document.getElementById('ruleEdit');
       ruleEdit.schema = schema;
 
       var demoForm = document.getElementById('demoForm');
       demoForm.schema = schema;
 
-      initializeForm(demoForm);
+      var submit = document.getElementById('submit');
+      submit.addEventListener('click', function(e) {
 
+        var lConditions = ruleEdit.value.conditions;
+        var lActions = ruleEdit.value.actions;
 
-      function initializeForm() {
-
-        var submit = document.getElementById('submit');
-        submit.addEventListener('click', function (e) {
-          e.preventDefault();
-          var lConditions = ruleEdit.value.conditions;
-          var lActions = ruleEdit.value.actions;
-          var engine = new RuleEngine({
-            conditions: lConditions,
-            actions: lActions
-          });
-
-          // conditions adapter is pairs of "property + 'Field'": demoForm.data[property]
-          var conditionsAdapter = demoForm.data;
-          /*
-          var conditionsAdapter = {};
-          for (property in schema.properties) {
-            conditionsAdapter[property + 'Field'] = demoForm.data[property];
-          }
-          */
-          var actionsAdapter = {
-            alert: function (data) {
-              alert(data.find("message"));
-            },
-            updateField: function (data) {
-              //console.log("data", data);
-              var fieldId = data.find("fieldId");
-              //console.log("fieldId", fieldId);
-              var val = data.find("fieldId", "newValue");
-              fieldId = fieldId.replace('Field', '');
-              if (val === "true") {
-                val = true;
-              }
-              if (val === "false") {
-                val = false;
-              }
-              //demoForm.data[fieldId] = val;
-              demoForm.updateFormElementData(fieldId, val);
-            }
-          };
-          engine.run(conditionsAdapter, actionsAdapter);
+        var engine = new RuleEngine({
+          conditions: lConditions,
+          actions: lActions
         });
-      }
+
+        var conditionsAdapter = demoForm.data;
+
+        var actionsAdapter = {
+          alert: function(data) {
+            alert(data.message);
+          },
+          updateField: function(data) {
+            var fieldId = data.fieldName;
+            var val = data.updateTo;
+
+            if (val === "true") {
+              val = true;
+            }
+            if (val === "false") {
+              val = false;
+            }
+            demoForm.updateFormElementData(fieldId, val);
+          }
+        };
+        engine.run(conditionsAdapter, actionsAdapter);
+      });
     });
   </script>
 
