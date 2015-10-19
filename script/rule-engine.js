@@ -181,7 +181,7 @@ var global = this;
           value = value()
         }
       }
-      var nodeValue = node.isFieldComparison ? obj[node.value] : node.value;
+      var nodeValue = node.compareTo === "field" ? obj[node.value] : node.value;
       compareValues(value, node.operator, nodeValue, engine, cb);
     } catch(e) {
       cb(e);
