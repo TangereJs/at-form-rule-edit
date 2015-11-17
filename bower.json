@@ -3,7 +3,7 @@
   "private": true,
   "dependencies": {
     "polymer": "Polymer/polymer#0.8-preview",
-    "at-rule-coditions": "TangereJs/at-rule-coditions#0.8-preview",
+    "at-rule-conditions": "TangereJs/at-rule-conditions#0.8-preview",
     "at-rule-actions": "TangereJs/at-rule-actions#0.8-preview"
   }
 }
