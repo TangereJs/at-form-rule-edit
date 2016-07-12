@@ -1,3 +1,4 @@
+<link rel="import" href="../tangere/tangere.html">
 <link rel="import" href="../at-rule-conditions/at-rule-conditions.html">
 <link rel="import" href="../at-rule-actions/at-rule-actions.html">
 <script src="script/rule-engine.js" type="text/javascript"></script>
@@ -7,126 +8,130 @@
     <at-rule-conditions id="conditions"></at-rule-conditions>
     <at-rule-actions id="actions"></at-rule-actions>
   </template>
-</dom-module>
 
-<script>
-  'use strict';
-  Polymer({
-    is: 'at-form-rule-edit',
-    properties: {
-      schema: {
-        type: Object,
-        value: function () {
-          return {};
+  <script>
+    'use strict';
+    Polymer({
+      is: 'at-form-rule-edit',
+      properties: {
+        schema: {
+          type: Object,
+          value: function() {
+            return {};
+          },
+          observer: 'schemaChanged'
         },
-        observer: 'schemaChanged'
-      },
-      ruleConfig: {
-        type: Object,
-        value: function() {
-          return {
-            conditions: [],
-            actions: {}
-          };
+        ruleConfig: {
+          type: Object,
+          value: function() {
+            return {
+              conditions: [],
+              actions: {}
+            };
+          },
+          observer: 'ruleConfigChanged'
         },
-        observer: 'ruleConfigChanged'
-      },
-      value: {
-        type: Object,
-        value: function() {
-          return {
-            conditions: {
-              kind: "all",
-              conditions: []
-            },
-            actions: []
-          };
+        value: {
+          type: Object,
+          value: function() {
+            return {
+              conditions: {
+                kind: "all",
+                conditions: []
+              },
+              actions: []
+            };
+          },
+          observer: 'valueChanged'
         },
-        observer: 'valueChanged'
-      },
-      disabled: {
-        type: Boolean,
-        value: false,
-        observer: 'disabledChanged'
-      }
-    },
-    _scopeCssViaAttr: true,
-    ready: function() {
-      var self = this;
-      this.$.conditions.addEventListener('value-changed', function(event) {
-        event.stopPropagation();
-        self.value.conditions = self.$.conditions.value;
-        self.fire('value-changed', { value: self.value });
-      });
-      this.$.actions.addEventListener('value-changed', function(event) {
-        event.stopPropagation();
-        self.value.actions = self.$.actions.value;
-        self.fire('value-changed', { value: self.value });
-      });
-    },
-    schemaChanged: function(newValue, oldValue) {
-      this.$.conditions.schema = newValue;
-      this.$.actions.schema = newValue;
-    },
-    ruleConfigChanged: function(newValue, oldValue) {
-      this.$.conditions.config = newValue.conditions;
-      this.$.actions.config = newValue.actions;
-    },
-    valueChanged: function(newValue, oldValue) {
-      this.$.conditions.value = newValue.conditions;
-      this.$.actions.value = newValue.actions;
-    },
-    disabledChanged: function(newValue, oldValue) {
-      this.$.conditions.disabled = newValue;
-      this.$.actions.disabled = newValue;
-    },
-
-    // *ij* #638 upgrades
-    // this function checks provided conditions and actions against a at-core-form
-    checkAgainst: function(coreForm, customActionsAdapter) {
-
-      var lConditions = this.value.conditions;
-      var lActions = this.value.actions;
-      var engine = new RuleEngine({
-        conditions: lConditions,
-        actions: lActions
-      });
-
-      var conditionsAdapter = coreForm.data;
-      var actionsAdapter = {
-        alert: function(data) {
-          alert(data.message);
-        },
-        updateField: function(data) {
-          var fieldId = data.fieldName;
-          var val = data.updateTo;
-
-          if (val === "true") {
-            val = true;
-          }
-          if (val === "false") {
-            val = false;
-          }
-          coreForm.updateFormElementData(fieldId, val);
-        },
-        setFieldState: function(data) {
-          var fieldId = data.fieldName;
-          var val = data.state;
-          coreForm.setElementState(fieldId, val, val);
-        },
-        copyFieldValue: function(data) {
-          var srcFieldId = data.fieldName;
-          var destFieldId = data.copyTo;
-
-          var srcValue = coreForm.data[srcFieldId];
-          coreForm.updateFormElementData(destFieldId, srcValue);
+        disabled: {
+          type: Boolean,
+          value: false,
+          observer: 'disabledChanged'
         }
-      };
-      if (customActionsAdapter) {
-        engine.run(conditionsAdapter, customActionsAdapter);
-      } else {
-        engine.run(conditionsAdapter, actionsAdapter);
+      },
+      _scopeCssViaAttr: true,
+      ready: function() {
+        var self = this;
+        this.$.conditions.addEventListener('value-changed', function(event) {
+          event.stopPropagation();
+          self.value.conditions = self.$.conditions.value;
+          self.fire('value-changed', {
+            value: self.value
+          });
+        });
+        this.$.actions.addEventListener('value-changed', function(event) {
+          event.stopPropagation();
+          self.value.actions = self.$.actions.value;
+          self.fire('value-changed', {
+            value: self.value
+          });
+        });
+      },
+      schemaChanged: function(newValue, oldValue) {
+        this.$.conditions.schema = newValue;
+        this.$.actions.schema = newValue;
+      },
+      ruleConfigChanged: function(newValue, oldValue) {
+        this.$.conditions.config = newValue.conditions;
+        this.$.actions.config = newValue.actions;
+      },
+      valueChanged: function(newValue, oldValue) {
+        this.$.conditions.value = newValue.conditions;
+        this.$.actions.value = newValue.actions;
+      },
+      disabledChanged: function(newValue, oldValue) {
+        this.$.conditions.disabled = newValue;
+        this.$.actions.disabled = newValue;
+      },
+
+      // *ij* #638 upgrades
+      // this function checks provided conditions and actions against a at-core-form
+      checkAgainst: function(coreForm, customActionsAdapter) {
+
+        var lConditions = this.value.conditions;
+        var lActions = this.value.actions;
+        var engine = new RuleEngine({
+          conditions: lConditions,
+          actions: lActions
+        });
+
+        var conditionsAdapter = coreForm.data;
+        var actionsAdapter = {
+          alert: function(data) {
+            alert(data.message);
+          },
+          updateField: function(data) {
+            var fieldId = data.fieldName;
+            var val = data.updateTo;
+
+            if (val === "true") {
+              val = true;
+            }
+            if (val === "false") {
+              val = false;
+            }
+            coreForm.updateFormElementData(fieldId, val);
+          },
+          setFieldState: function(data) {
+            var fieldId = data.fieldName;
+            var val = data.state;
+            coreForm.setElementState(fieldId, val, val);
+          },
+          copyFieldValue: function(data) {
+            var srcFieldId = data.fieldName;
+            var destFieldId = data.copyTo;
+
+            var srcValue = coreForm.data[srcFieldId];
+            coreForm.updateFormElementData(destFieldId, srcValue);
+          }
+        };
+        if (customActionsAdapter) {
+          engine.run(conditionsAdapter, customActionsAdapter);
+        } else {
+          engine.run(conditionsAdapter, actionsAdapter);
+        }
       }
-    }
-  });
-</script>
+    });
+  </script>
+</dom-module>
