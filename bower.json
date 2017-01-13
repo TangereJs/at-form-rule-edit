@@ -3,10 +3,10 @@
   "private": true,
   "version": "0.0.0.1",
   "dependencies": {
-    "tangere": "TangereJs/tangere#0.8-preview",
-    "at-rule-conditions": "TangereJs/at-rule-conditions#0.8-preview",
-    "at-rule-actions": "TangereJs/at-rule-actions#0.8-preview",
-    "layout": "polymer/layout#0.8-preview",
-    "at-core-form": "TangereJs/at-core-form#0.8-preview"
+    "tangere": "TangereJs/tangere#master",
+    "at-rule-conditions": "TangereJs/at-rule-conditions#master",
+    "at-rule-actions": "TangereJs/at-rule-actions#master",
+    "layout": "polymer/layout#master",
+    "at-core-form": "TangereJs/at-core-form#master"
   }
 }
