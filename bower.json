@@ -6,7 +6,7 @@
     "tangere": "TangereJs/tangere#master",
     "at-rule-conditions": "TangereJs/at-rule-conditions#master",
     "at-rule-actions": "TangereJs/at-rule-actions#master",
-    "layout": "polymer/layout#master",
+    "layout": "TangereJs/layout#master",
     "at-core-form": "TangereJs/at-core-form#master"
   }
 }
