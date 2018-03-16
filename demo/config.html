@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <title>Conditions Demo</title>
 
-  <script src="../webcomponentsjs/webcomponents-lite.js"></script>
-  <link rel="import" href="../layout/layout.html">
-  <link rel="import" href="at-form-rule-edit.html">
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../at-form-rule-edit.html">
+  <link rel="import" href="../../at-core-style-classes/at-core-style-classes.html" />
 
-  <style>
+  <style is="custom-style" include="at-core-style-classes">
     #demoForm {
       position: relative;
       top: 0px;
@@ -34,13 +34,13 @@
 </head>
 
 <body>
-  <div class="horizontal layout">
-    <div class="vertical layout">
-      <div class="vertical layout">
+  <div class="layout-horizontal">
+    <div class="layout-vertical">
+      <div class="layout-vertical">
         <h2>Conditions and Actions Demo - static schema</h2>
         <at-form-rule-edit id="ruleEdit"></at-form-rule-edit>
       </div>
-      <div class="vertical layout">
+      <div class="layout-vertical">
         <form id="demoForm" class="ui form">
           <h3 class="ui header">Try Changing These Values...</h3>
           <div class="field">
@@ -62,9 +62,9 @@
       </div>
     </div>
 
-    <div class="vertical layout">
+    <div class="layout-vertical">
       <h3>Rule edit value echo:</h3>
-      <div class="horizontal layout">
+      <div class="layout-horizontal">
         <textarea class="textarea" disabled id="ruleEditValueEcho"></textarea>
       </div>
     </div>
